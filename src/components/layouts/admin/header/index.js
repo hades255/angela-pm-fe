@@ -11,7 +11,7 @@ const Header = () => {
           <MarkIcon />
         </div>
         <div className="flex items-center">
-          <div className="flex justify-center items-center w-10 h-10 rounded-lg bg-[#F2F4F1] relative mr-3">
+          <div className="flex justify-center items-center w-10 h-10 rounded-lg bg-[#F2F4F1] hover:bg-[#ced1cc] relative mr-3 cursor-pointer transition-all">
             <BellIcon />
             <span className="absolute top-3 left-[22px] w-[6px] h-[6px] rounded bg-red-500"></span>
           </div>

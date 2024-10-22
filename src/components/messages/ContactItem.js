@@ -5,7 +5,7 @@ const ContactItem = ({ active }) => {
   return (
     <div
       className={classNames(
-        "flex border-t border-[#CBD5E1] px-[18px] py-6 gap-[10px] relative",
+        "flex border-t border-[#CBD5E1] px-[18px] py-6 gap-[10px] relative cursor-pointer hover:bg-[#f6f6fd] transition-all",
         { "bg-[#F6F8FD]": active }
       )}
     >

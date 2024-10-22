@@ -46,7 +46,7 @@ const ChatItem = ({ mine }) => {
             <img
               src="/avatars/user0.png"
               alt="user avatar"
-              className="w-9 h-9 rounded-3xl"
+              className="w-9 h-9 min-w-9 rounded-3xl"
             />
           </div>
         </div>
@@ -91,7 +91,7 @@ const ChatItem = ({ mine }) => {
             <img
               src="/avatars/user3.png"
               alt="user avatar"
-              className="w-9 h-9 rounded-3xl"
+              className="w-9 h-9 min-w-9 rounded-3xl"
             />
           </div>
           <div className="bg-[#F6F8FD] px-8 py-5 rounded-xl rounded-bl-none text-[#2B3674] text-sm">

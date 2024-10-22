@@ -15,7 +15,7 @@ const UserBoard = ({ show }) => {
     >
       <div className="flex justify-between items-center px-5 pt-4 pb-2 gap-2 flex-wrap">
         <div className="text-lg text-[#2B2929] font-bold text-nowrap">Online Users</div>
-        <div className="text-[#47548C] font-[500] text-center">+Add new contact</div>
+        <div className="text-[#47548C] font-[500] text-center cursor-pointer hover:underline">+Add new contact</div>
       </div>
       <div className="flex flex-wrap items-center px-5 py-2 gap-4">
         <div className="relative">
