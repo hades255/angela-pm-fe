@@ -21,6 +21,7 @@ code {
   -webkit-scrollbar-width: none;
   -ms-overflow-style: none;
   scrollbar-width: none;
+  transition: all ease-in-out;
 }
 
 ::-webkit-scrollbar {

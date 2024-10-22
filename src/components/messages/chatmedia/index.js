@@ -1,11 +1,22 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
+import ChatMediaModal from "./modal";
 
 const ChatMediasPanel = () => {
+  const [viewAll, setViewAll] = useState(false);
+
+  const handleClickViewAll = useCallback(() => setViewAll(true), []);
+  const handleCloseViewAll = useCallback(() => setViewAll(false), []);
+
   return (
     <>
       <div className="mt-5 flex justify-between">
         <span className="text-lg text-[#2B2929] font-bold">Chat Media</span>
-        <span className="text-[#47548C] font-[500]">View All</span>
+        <span
+          className="text-[#47548C] font-[500] cursor-pointer"
+          onClick={handleClickViewAll}
+        >
+          View All
+        </span>
       </div>
       <div className="flex flex-wrap -mx-1">
         <div className="w-1/3 p-1">
@@ -54,6 +65,9 @@ const ChatMediasPanel = () => {
           </div>
         </div>
       </div>
+      {viewAll && (
+        <ChatMediaModal show={viewAll} onClose={handleCloseViewAll} />
+      )}
     </>
   );
 };

@@ -5,7 +5,7 @@ import MoreIcon from "../../../assets/icons/More";
 const ChatPanel = () => {
   return (
     <>
-      <div className="w-[calc(100%_-_284px)] h-full border border-[#E0E5F2] relative">
+      <div className="w-full md:w-[calc(100%_-_284px)] h-full rounded-bl-[12px] xl:rounded-bl-none rounded-br-[12px] md:rounded-br-none border border-[#E0E5F2] relative">
         <div className="flex flex-col h-full overflow-y-scroll p-5 gap-6">
           <div className="flex justify-stretch items-center">
             <div className="border-t-2 border-[#34335B10] w-full"></div>
@@ -26,7 +26,7 @@ export default ChatPanel;
 const ChatItem = ({ mine }) => {
   return mine ? (
     <div className="flex justify-end">
-      <div className="w-3/4 flex flex-col">
+      <div className="w-full sm:w-3/4 min-w-[300px] flex flex-col">
         <div className="flex justify-stretch">
           <div className="min-w-8 flex justify-start items-start">
             <div className="cursor-pointer">
@@ -50,7 +50,7 @@ const ChatItem = ({ mine }) => {
     </div>
   ) : (
     <div className="flex justify-start">
-      <div className="w-3/4 flex flex-col">
+      <div className="w-full sm:w-3/4 min-w-[300px] flex flex-col">
         <div className="flex justify-stretch">
           <div className="min-w-12 flex items-end">
             <img

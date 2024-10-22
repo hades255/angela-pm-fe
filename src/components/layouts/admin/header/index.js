@@ -1,11 +1,15 @@
 import React from "react";
 import BellIcon from "../../../../assets/icons/Bell";
 import DownVectorIcon from "../../../../assets/icons/vector/Down";
+import MarkIcon from "../../../../assets/icons/Mark";
 
 const Header = () => {
   return (
     <div className="absolute top-0 left-0 w-screen h-[74px] border border-[#F4F7FE] bg-white shadow-[0_1px_2px_#0000000F,0_1px_3px_#0000001A] px-8 z-20">
-      <div className="w-full h-full flex justify-end items-center">
+      <div className="w-full h-full flex justify-between items-center">
+        <div className="sm:invisible">
+          <MarkIcon />
+        </div>
         <div className="flex items-center">
           <div className="flex justify-center items-center w-10 h-10 rounded-lg bg-[#F2F4F1] relative mr-3">
             <BellIcon />

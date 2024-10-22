@@ -1,13 +1,24 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import Mp4Icon from "../../../assets/icons/media/Mp4";
 import DocumentIcon from "../../../assets/icons/media/Document";
+import ChatFilesModal from "./modal";
 
 const ChatFilesPanel = () => {
+  const [viewAll, setViewAll] = useState(false);
+
+  const handleClickViewAll = useCallback(() => setViewAll(true), []);
+  const handleCloseViewAll = useCallback(() => setViewAll(false), []);
+
   return (
     <>
       <div className="mt-5 flex justify-between">
         <span className="text-lg text-[#2B2929] font-bold">Chat Files</span>
-        <span className="text-[#47548C] font-[500]">View All</span>
+        <span
+          className="text-[#47548C] font-[500] cursor-pointer"
+          onClick={handleClickViewAll}
+        >
+          View All
+        </span>
       </div>
       <div>
         <ChatFileItem
@@ -29,6 +40,9 @@ const ChatFilesPanel = () => {
           createdAt={"18 Sep 2024"}
         />
       </div>
+      {viewAll && (
+        <ChatFilesModal show={viewAll} onClose={handleCloseViewAll} />
+      )}
     </>
   );
 };

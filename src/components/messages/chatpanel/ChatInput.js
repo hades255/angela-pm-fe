@@ -6,7 +6,7 @@ import SendIcon from "../../../assets/icons/input/Send";
 const ChatInput = () => {
   return (
     <>
-      <div className="absolute left-0 bottom-0 w-full h-24 p-5 border-b border-[#CBD5E1] flex items-center gap-5">
+      <div className="absolute left-0 bottom-0 w-full h-24 p-5 flex items-center gap-5">
         <div className="w-[calc(100%_-_80px)] h-[60px] relative">
           <input
             className="w-full h-full bg-[#EEF1F4] rounded-xl text-lg text-[#34335B] px-14"

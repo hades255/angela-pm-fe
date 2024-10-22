@@ -4,7 +4,7 @@ import SearchIcon from "../../assets/icons/Search";
 
 const UserBoard = () => {
   return (
-    <div className="w-[408px] min-w-[408px] h-full rounded-s-[12px] border border-[#E0E5F2] flex flex-col">
+    <div className="border-0 w-0 xl:w-[408px] xl:min-w-[408px] h-full rounded-s-[12px] xl:border border-[#E0E5F2] xl:flex xl:flex-col overflow-x-hidden transition-all">
       <div className="min-h-[60px] h-[60px] flex justify-between items-center px-5">
         <div className="text-lg text-[#2B2929] font-bold">Online Users</div>
         <div className="text-[#47548C] font-[500]">+Add new contact</div>
