@@ -12,8 +12,8 @@ const DownVectorIcon = ({ width = 6, height = 9, color = "#94A3B8" }) => {
       <path
         d="M1 1L5 5L1 8.5"
         stroke={color}
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

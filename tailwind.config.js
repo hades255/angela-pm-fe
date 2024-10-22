@@ -2,7 +2,12 @@
 module.exports = {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      backgroundImage: {
+        "chat-send-button":
+          "linear-gradient(108.54deg, #5F5F5F 6.56%, #000000 95.2%)",
+      },
+    },
   },
   plugins: [],
 };
