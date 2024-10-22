@@ -9,15 +9,17 @@ const ContactItem = ({ active }) => {
         { "bg-[#F6F8FD]": active }
       )}
     >
-      <div className="relative">
-        <img
-          src="/avatars/user1.png"
-          alt="user 1"
-          width={58}
-          height={58}
-          className="rounded-[58px]"
-        />
-        <span className="absolute bottom-[2px] right-[2px] w-[11px] h-[11px] border rounded-lg bg-green-500"></span>
+      <div>
+        <div className="relative">
+          <img
+            src="/avatars/user1.png"
+            alt="user 1"
+            width={58}
+            height={58}
+            className="rounded-[58px] w-[58px] min-w-[58px]"
+          />
+          <span className="absolute bottom-[2px] right-[2px] w-[11px] h-[11px] border rounded-lg bg-green-500"></span>
+        </div>
       </div>
       <div className="flex-grow flex flex-col gap-1">
         <div className="flex justify-between items-baseline">

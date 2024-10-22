@@ -3,6 +3,7 @@ import SearchIcon from "../../../assets/icons/Search";
 import DownloadIcon from "../../../assets/icons/media/Download";
 import MoreIcon from "../../../assets/icons/More";
 import classNames from "classnames";
+import LeftVectorIcon from "../../../assets/icons/vector/Left";
 
 const ChatFilesModal = ({ show, onClose }) => {
   const [close, setClose] = useState(false);
@@ -35,7 +36,13 @@ const ChatFilesModal = ({ show, onClose }) => {
           }
         )}
       >
-        <div className="min-h-[50px] h-[50px] text-2xl font-bold text-[#2B2929] px-10 mt-16">
+        <div className="min-h-[50px] h-[50px] text-2xl font-bold text-[#2B2929] px-10 mt-16 flex items-center">
+          <span
+            onClick={handleClickClose}
+            className="md:hidden cursor-pointer px-2 mr-2"
+          >
+            <LeftVectorIcon width={12} height={18} />
+          </span>
           Chat Files
         </div>
         <div className="px-10 min-h-[84px] h-[84px] flex items-center gap-5">
