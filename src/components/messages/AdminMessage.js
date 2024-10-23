@@ -5,7 +5,7 @@ import LeftVectorIcon from "../../assets/icons/vector/Left";
 import RightVectorIcon from "../../assets/icons/vector/Right";
 import classNames from "classnames";
 
-const Message = () => {
+const AdminMessage = ({ setShowUsersPanel, hide }) => {
   const [showPinnedPanel, setShowPinnedPanel] = useState(false);
 
   const handleClickPinnedPanelView = useCallback(
@@ -24,9 +24,23 @@ const Message = () => {
   }, []);
 
   return (
-    <div className="h-full w-full flex flex-col">
-      <div className="w-full h-[68px] rounded-tl-[12px] rounded-tr-[12px] border border-[#E0E5F2] flex items-center justify-between px-[18px]">
+    <div
+      className={classNames("flex-grow h-full w-full flex flex-col", {
+        "w-[calc(100vw_-_508px)] overflow-hidden border rounded-[12px]": hide,
+      })}
+    >
+      <div className="w-full h-[68px] rounded-tl-[12px] xl:rounded-tl-none rounded-tr-[12px] border border-[#E0E5F2] flex items-center justify-between px-[18px]">
         <div className="flex items-center gap-3">
+          <div
+            className="cursor-pointer px-2 xl:hidden"
+            onClick={setShowUsersPanel}
+          >
+            {hide ? (
+              <RightVectorIcon width={12} height={18} />
+            ) : (
+              <LeftVectorIcon width={12} height={18} />
+            )}
+          </div>
           <div className="relative">
             <img
               src="/avatars/user5.png"
@@ -65,4 +79,4 @@ const Message = () => {
   );
 };
 
-export default Message;
+export default AdminMessage;

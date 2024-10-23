@@ -8,7 +8,7 @@ const ChatPanel = ({ hide }) => {
     <>
       <div
         className={classNames(
-          "w-full md:w-[calc(100%_-_284px)] h-full rounded-bl-[12px] xl:rounded-bl-none rounded-br-[12px] md:rounded-br-none border border-[#E0E5F2] relative transition-all overflow-x-hidden",
+          "w-full md:w-[calc(100%_-_284px)] h-full rounded-bl-[12px] rounded-br-[12px] md:rounded-br-none border border-[#E0E5F2] relative transition-all overflow-x-hidden",
           { "w-0 max-w-0 border-0": hide }
         )}
       >
@@ -38,7 +38,7 @@ const ChatItem = ({ mine }) => {
               <MoreIcon />
             </div>
           </div>
-          <div className="bg-chat-send-button px-8 py-5 rounded-xl rounded-br-none text-white text-sm">
+          <div className="bg-chat-send-button px-8 py-5 rounded-xl rounded-br-none text-white text-sm w-full">
             Hi! I'm excited to start out project for "Company Name." Can we
             discuss the first milestone?
           </div>

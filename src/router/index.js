@@ -1,13 +1,17 @@
-import React, { lazy } from "react";
+import React, { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 
+const AdminMessages = lazy(() => import("../pages/AdminMessages"));
 const Messages = lazy(() => import("../pages/Messages"));
 
 const Router = () => {
   return (
-    <Routes>
-      <Route path="/" element={<Messages />} />
-    </Routes>
+    <Suspense fallback={<div className=""></div>}>
+      <Routes>
+        <Route path="/" element={<Messages />} />
+        <Route path="/message" element={<AdminMessages />} />
+      </Routes>
+    </Suspense>
   );
 };
 

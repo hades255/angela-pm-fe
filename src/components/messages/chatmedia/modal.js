@@ -13,7 +13,7 @@ const ChatMediaModal = ({ show, onClose }) => {
     setTimeout(() => {
       onClose();
     }, 300);
-  }, [onclose]);
+  }, [onClose]);
 
   return (
     <>
