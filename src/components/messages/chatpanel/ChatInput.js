@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, useContext } from "react";
 import { useDispatch } from "react-redux";
 import moment from "moment";
 import data from "@emoji-mart/data";
@@ -9,11 +9,14 @@ import SendIcon from "../../../assets/icons/input/Send";
 import EmojiIcon from "../../../assets/icons/input/Emoji";
 import AttachmentIcon from "../../../assets/icons/input/Attachment";
 
+import { WebSocketContext } from "../../../WebSocketContext";
+
 const ChatInput = () => {
   const dispatch = useDispatch();
   const textAreaRef = useRef(null);
   const [input, setInput] = useState("");
   const [files, setFiles] = useState([]);
+  const { socket, message } = useContext(WebSocketContext);
 
   const handleInputChange = useCallback(
     ({ target: { value } }) => setInput(value),
@@ -35,6 +38,10 @@ const ChatInput = () => {
           status: "read",
         })
       );
+      console.log(socket);
+      if (socket) {
+        socket.send(JSON.stringify({ room: "room", message }));
+      }
       setInput("");
     },
     [dispatch]

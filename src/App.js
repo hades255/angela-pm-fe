@@ -6,17 +6,20 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Router from "./router";
 import Sidebar from "./components/layouts/admin/sidebar";
 import Header from "./components/layouts/admin/header";
+import { WebSocketProvider } from './WebSocketContext';
 
 function App() {
   return (
     <Provider store={store}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Sidebar />
-          <Header />
-          <Router />
-        </BrowserRouter>
-      </AuthProvider>
+      <WebSocketProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <Sidebar />
+            <Header />
+            <Router />
+          </BrowserRouter>
+        </AuthProvider>
+      </WebSocketProvider>
     </Provider>
   );
 }
