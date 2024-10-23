@@ -29,8 +29,8 @@ const Message = () => {
         <div className="flex items-center gap-3">
           <div className="relative">
             <img
-              src="/avatars/user5.png"
-              alt="user 5"
+              src="/avatars/user0.png"
+              alt="user 0"
               width={40}
               height={40}
               className="rounded-[58px] min-w-10 min-h-10 max-w-10 max-h-10"
@@ -39,10 +39,10 @@ const Message = () => {
           </div>
           <div className="flex flex-col">
             <div className="text-[#2D396B] font-bold text-nowrap">
-              User Contact Name
+              Angela L.
             </div>
             <div className="text-sm text-[#34335B] text-nowrap">
-              Active 28 min ago
+              Project Manager
             </div>
           </div>
         </div>
