@@ -7,6 +7,7 @@ const authSlice = createSlice({
     name: "Elon Mask",
     avatar: "user1.png",
     isAuthenticated: false,
+    isAdmin: false,
   },
   reducers: {
     login: (state, payload) => {
@@ -14,6 +15,8 @@ const authSlice = createSlice({
       state.name = payload.payload.name;
       state.avatar = payload.payload.avatar;
       state.isAuthenticated = true;
+      if (payload.payload.name) state.isAdmin = true;
+      else state.isAdmin = false;
     },
     logout: (state) => {
       state.id = "";
