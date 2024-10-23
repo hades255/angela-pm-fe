@@ -22,7 +22,7 @@ const Signin = () => {
           avatar: "user3.png",
         })
       );
-      navigate("/message");
+      // navigate("/message");
     },
     [username, dispatch, navigate]
   );

@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react";
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 const Signin = lazy(() => import("../pages/Signin"));
@@ -10,8 +10,7 @@ const Router = () => {
   return (
     <Suspense fallback={<div className=""></div>}>
       <Routes>
-        <Route path="/" element={<Signin />} />
-        <Route path="/message" element={<MessagePage />} />
+        <Route path="/" element={<MessagePage />} />
       </Routes>
     </Suspense>
   );
@@ -20,13 +19,10 @@ const Router = () => {
 export default Router;
 
 const MessagePage = () => {
-  const navigate = useNavigate();
   const { isAuthenticated, isAdmin } = useAuth();
   console.log(isAuthenticated, isAdmin);
-  if (!isAuthenticated) {
-    navigate("/");
-    return <></>;
+  if (isAuthenticated) {
+    return isAdmin ? <AdminMessages /> : <Messages />;
   }
-
-  return isAuthenticated && isAdmin ? <AdminMessages /> : <Messages />;
+  return <Signin />;
 };

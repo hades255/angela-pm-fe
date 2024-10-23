@@ -6,6 +6,7 @@ module.exports = {
       backgroundImage: {
         "chat-send-button":
           "linear-gradient(108.54deg, #5F5F5F 6.56%, #000000 95.2%)",
+        "input-form": "linear-gradient(to top, #FFFFFF, #FFFFFF00)",
       },
       keyframes: {
         "right-modal-in": {

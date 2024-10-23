@@ -90,7 +90,7 @@ const ChatInput = () => {
   return (
     <>
       <form
-        className="absolute left-0 bottom-0 w-full h-24 p-5 flex items-end gap-5"
+        className="absolute left-0 bottom-0 w-full h-24 p-5 flex items-end gap-5 bg-input-form"
         method="POST"
         onSubmit={handleSubmit}
       >
