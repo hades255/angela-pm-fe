@@ -45,7 +45,6 @@ const ChatInput = () => {
       if (event.key === "Enter" && event.ctrlKey) {
         event.preventDefault();
         if (input) onSendMessage(input);
-        setInput("");
       }
     },
     [onSendMessage, input]
@@ -56,7 +55,7 @@ const ChatInput = () => {
       e.preventDefault();
       if (input) onSendMessage(input);
     },
-    [input, dispatch]
+    [input, onSendMessage]
   );
 
   const addEmoji = useCallback(
@@ -95,15 +94,17 @@ const ChatInput = () => {
         method="POST"
         onSubmit={handleSubmit}
       >
-        <textarea
-          ref={textAreaRef}
-          value={input}
-          onKeyDown={handleKeyDown}
-          onChange={handleInputChange}
-          rows={1}
-          placeholder="Type your message here"
-          className="resize-none outline-none w-[calc(100%_-_80px)] h-[60px] bg-[#EEF1F4] rounded-xl text-lg text-[#34335B] py-4 px-14 overflow-hidden"
-        />
+        <div className="w-[calc(100%_-_80px)] min-h-[60px] bg-[#EEF1F4] rounded-xl overflow-auto px-14 py-2 flex items-center">
+          <textarea
+            ref={textAreaRef}
+            value={input}
+            onKeyDown={handleKeyDown}
+            onChange={handleInputChange}
+            rows={1}
+            placeholder="Type your message here"
+            className="resize-none outline-none w-full bg-[#EEF1F4] text-lg text-[#34335B] overflow-hidden"
+          />
+        </div>
         <Emoji addEmoji={addEmoji} />
         <FileUploader setFiles={setFiles} />
         <button
@@ -160,7 +161,7 @@ const FileUploader = ({ setFiles }) => {
         ref={fileInputRef}
       />
       <div
-        className="absolute bottom-9 right-32 cursor-pointer"
+        className="absolute bottom-[38px] right-32 cursor-pointer"
         onClick={openFileDialog}
       >
         <AttachmentIcon />
@@ -195,7 +196,7 @@ const Emoji = ({ addEmoji }) => {
         )}
       </div>
       <div
-        className="absolute bottom-9 left-10 cursor-pointer"
+        className="absolute bottom-[38px] left-10 cursor-pointer"
         onClick={handleShowEmoji}
       >
         <EmojiIcon />
