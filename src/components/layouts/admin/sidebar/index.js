@@ -10,7 +10,7 @@ import OpenSidebarIcon from "../../../../assets/icons/sidebar/OpenSidebar";
 
 const Sidebar = () => {
   return (
-    <div className="absolute top-0 left-[-74px] sm:left-0 z-30 w-[74px] h-screen min-h-screen max-h-screen border border-[#E2E8F0] bg-white transition-all">
+    <div className="fixed top-0 left-[-74px] sm:left-0 z-30 w-[74px] h-screen min-h-screen max-h-screen border border-[#E2E8F0] bg-white transition-all">
       <div className="h-full max-h-[1024px] flex flex-col justify-between relative">
         <div>
           <div className="pt-7 pb-10 flex justify-center">

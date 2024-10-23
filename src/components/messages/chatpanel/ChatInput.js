@@ -1,30 +1,205 @@
-import React from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useDispatch } from "react-redux";
+import moment from "moment";
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
+
+import { addMessage } from "../../../redux/messageSlice";
+import SendIcon from "../../../assets/icons/input/Send";
 import EmojiIcon from "../../../assets/icons/input/Emoji";
 import AttachmentIcon from "../../../assets/icons/input/Attachment";
-import SendIcon from "../../../assets/icons/input/Send";
 
 const ChatInput = () => {
+  const dispatch = useDispatch();
+  const textAreaRef = useRef(null);
+  const [input, setInput] = useState("");
+  const [files, setFiles] = useState([]);
+
+  const handleInputChange = useCallback(
+    ({ target: { value } }) => setInput(value),
+    []
+  );
+
+  const onSendMessage = useCallback(
+    (message) => {
+      dispatch(
+        addMessage({
+          room: "room",
+          id: Date.now(),
+          text: message,
+          from: { id: "2", name: "Elon Mask", avatar: "user1.png" },
+          to: { id: "1", name: "admin", avatar: "user0.png" },
+          attachments: [],
+          created_at: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
+          updated_at: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
+          status: "read",
+        })
+      );
+      setInput("");
+    },
+    [dispatch]
+  );
+
+  const handleKeyDown = useCallback(
+    (event) => {
+      if (event.key === "Enter" && event.ctrlKey) {
+        event.preventDefault();
+        if (input) onSendMessage(input);
+        setInput("");
+      }
+    },
+    [onSendMessage, input]
+  );
+
+  const handleSubmit = useCallback(
+    (e) => {
+      e.preventDefault();
+      if (input) onSendMessage(input);
+    },
+    [input, dispatch]
+  );
+
+  const addEmoji = useCallback(
+    ({ id, native }) => {
+      // console.log(id);
+      // <em-emoji id="+1" size="2em"></em-emoji>
+      setInput(input + native);
+    },
+    [input]
+  );
+
+  const adjustHeight = () => {
+    const maxRows = 10;
+    const lineHeight = 24;
+    const maxHeight = lineHeight * maxRows;
+
+    if (textAreaRef.current) {
+      textAreaRef.current.style.height = "auto";
+      textAreaRef.current.style.height = `${Math.min(
+        textAreaRef.current.scrollHeight,
+        maxHeight
+      )}px`;
+      textAreaRef.current.style.overflowY =
+        textAreaRef.current.scrollHeight > maxHeight ? "auto" : "hidden";
+    }
+  };
+
+  useEffect(() => {
+    adjustHeight();
+  }, [input]);
+
   return (
     <>
-      <div className="absolute left-0 bottom-0 w-full h-24 p-5 flex items-center gap-5">
-        <div className="w-[calc(100%_-_80px)] h-[60px] relative">
-          <input
-            className="w-full h-full bg-[#EEF1F4] rounded-xl text-lg text-[#34335B] px-14"
-            placeholder="Type your message here"
-          />
-          <div className="absolute top-0 left-4 h-full flex items-center cursor-pointer">
-            <EmojiIcon />
-          </div>
-          <div className="absolute top-0 right-4 h-full flex items-center cursor-pointer">
-            <AttachmentIcon />
-          </div>
-        </div>
-        <button className="w-[60px] h-[60px] bg-chat-send-button rounded-xl flex justify-center items-center">
+      <form
+        className="absolute left-0 bottom-0 w-full h-24 p-5 flex items-end gap-5"
+        method="POST"
+        onSubmit={handleSubmit}
+      >
+        <textarea
+          ref={textAreaRef}
+          value={input}
+          onKeyDown={handleKeyDown}
+          onChange={handleInputChange}
+          rows={1}
+          placeholder="Type your message here"
+          className="resize-none outline-none w-[calc(100%_-_80px)] h-[60px] bg-[#EEF1F4] rounded-xl text-lg text-[#34335B] py-4 px-14 overflow-hidden"
+        />
+        <Emoji addEmoji={addEmoji} />
+        <FileUploader setFiles={setFiles} />
+        <button
+          type="submit"
+          className="w-[60px] h-[60px] bg-chat-send-button rounded-xl flex justify-center items-center"
+        >
           <SendIcon />
         </button>
-      </div>
+      </form>
     </>
   );
 };
 
 export default ChatInput;
+
+const FileUploader = ({ setFiles }) => {
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = useCallback(
+    async ({ target: { files } }) => {
+      const selectedFiles = [...files];
+      /*
+      const formData = new FormData();
+      selectedFiles.forEach((file) => {
+        formData.append("files", file);
+      });
+
+      const response = await fetch(`your-server-endpoint`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        setFiles(selectedFiles);
+      } else {
+        console.error("Error uploading files");
+      }
+      */
+    },
+    [setFiles]
+  );
+
+  const openFileDialog = useCallback(() => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  }, []);
+
+  return (
+    <>
+      <input
+        type="file"
+        multiple
+        onChange={handleFileChange}
+        style={{ display: "none" }}
+        ref={fileInputRef}
+      />
+      <div
+        className="absolute bottom-9 right-32 cursor-pointer"
+        onClick={openFileDialog}
+      >
+        <AttachmentIcon />
+      </div>
+    </>
+  );
+};
+
+const Emoji = ({ addEmoji }) => {
+  const [showPicker, setShowPicker] = useState(0);
+
+  const handleToggleEmoji = useCallback(
+    () => setShowPicker(showPicker === 1 ? 2 : 0),
+    [showPicker]
+  );
+
+  const handleShowEmoji = useCallback(() => setShowPicker(1), []);
+
+  return (
+    <>
+      <div className="absolute bottom-20">
+        {showPicker > 0 && (
+          <Picker
+            data={data}
+            autoFocus={true}
+            navPosition="bottom"
+            previewPosition="none"
+            emojiButtonColors={["rgba(49,59,67,.7)"]}
+            onEmojiSelect={addEmoji}
+            onClickOutside={handleToggleEmoji}
+          />
+        )}
+      </div>
+      <div
+        className="absolute bottom-9 left-10 cursor-pointer"
+        onClick={handleShowEmoji}
+      >
+        <EmojiIcon />
+      </div>
+    </>
+  );
+};

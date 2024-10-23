@@ -19,7 +19,7 @@ const ChatMediaModal = ({ show, onClose }) => {
     <>
       <div
         className={classNames(
-          "absolute top-0 left-0 w-screen h-screen bg-[#535353C8] z-30",
+          "fixed top-0 left-0 w-screen h-screen bg-[#535353C8] z-30",
           {
             "animate-fadeIn": show,
             "animate-fadeOut": close,
@@ -29,7 +29,7 @@ const ChatMediaModal = ({ show, onClose }) => {
       ></div>
       <div
         className={classNames(
-          "absolute right-0 top-0 w-full max-w-[540px] h-screen bg-white z-30",
+          "fixed right-0 top-0 w-full max-w-[540px] h-screen bg-white z-30",
           {
             "animate-right-modal-in": show,
             "animate-right-modal-out": close,

@@ -3,7 +3,6 @@ import ChatPanel from "./chatpanel";
 import PinnedPanel from "./pinnedpanel";
 import LeftVectorIcon from "../../assets/icons/vector/Left";
 import RightVectorIcon from "../../assets/icons/vector/Right";
-import classNames from "classnames";
 
 const Message = () => {
   const [showPinnedPanel, setShowPinnedPanel] = useState(false);
