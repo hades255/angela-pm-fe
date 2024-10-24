@@ -32,7 +32,7 @@ export const WebSocketProvider = ({ children }) => {
     return () => {
       ws.close();
     };
-  }, []);
+  }, [dispatch]);
 
   return (
     <WebSocketContext.Provider value={{ socket, message }}>

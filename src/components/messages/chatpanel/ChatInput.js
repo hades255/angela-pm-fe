@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 import { addMessage, setStatus } from "../../../redux/messageSlice";
 import SendIcon from "../../../assets/icons/input/Send";
@@ -14,7 +14,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 
 const ChatInput = () => {
   const dispatch = useDispatch();
-  const { room } = useSelector((state) => state.message);
+  const { room, selectedUser } = useSelector((state) => state.message);
   const user = useAuth();
   const { socket } = useWebSocket();
   const textAreaRef = useRef(null);
@@ -29,24 +29,30 @@ const ChatInput = () => {
   const onSendMessage = useCallback(
     (message) => {
       const _msg = {
-        room,
+        room: user.isAdmin ? selectedUser.room : room,
         id: uuidv4(),
         text: message,
         from: user.id,
-        to: user.admin.id,
+        to: user.isAdmin ? selectedUser.id : user.admin.id,
         attachments: [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         status: "unread",
       };
+      if (!user.isAdmin) dispatch(setStatus(3));
       dispatch(addMessage(_msg));
-      dispatch(setStatus(3));
       if (socket) {
-        socket.send(JSON.stringify({ room, type: "message", data: _msg }));
+        socket.send(
+          JSON.stringify({
+            room: user.isAdmin ? selectedUser.room : room,
+            type: user.isAdmin ? "reply" : "message",
+            data: _msg,
+          })
+        );
       }
       setInput("");
     },
-    [dispatch, user, socket, room]
+    [dispatch, user, socket, room, selectedUser]
   );
 
   const handleKeyDown = useCallback(

@@ -23,9 +23,12 @@ function connectToDatabase()
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         room VARCHAR(255) NOT NULL,
-        avatar VARCHAR(255)
+        avatar VARCHAR(255),
+        status INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         );
-        INSERT INTO `users` (`id`, `name`, `room`, `avatar`) VALUES (1, 'admin', 'admin-room', 'user0.png')
+        INSERT INTO `users` (`id`, `name`, `room`, `avatar`, `status`) VALUES (1, 'admin', 'admin-room', 'user0.png', 0)
      */
     /**CREATE TABLE attachments (
         id VARCHAR(50) PRIMARY KEY,
@@ -79,6 +82,9 @@ function getUserOrCreate(ServerRequestInterface $request)
         $user = $result->fetch_assoc();
         $room = $user["room"];
         $user_id = $user["id"];
+        $stmt = $conn->prepare("UPDATE users SET status = 0 WHERE id = ?");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
     } else {
         $room = generateUniqueId("room");
         $avatar = "user" . rand(2, 7) . ".png";
@@ -88,7 +94,6 @@ function getUserOrCreate(ServerRequestInterface $request)
         $user_id = $stmt->insert_id;
         $user = ["id" => $user_id, "name" => $name, "room" => $room, "avatar" => $avatar];
     }
-    print $room;
 
     $stmt = $conn->prepare("SELECT * FROM users WHERE name = 'admin'");
     $stmt->execute();
@@ -110,7 +115,7 @@ function getUserOrCreate(ServerRequestInterface $request)
 
     $users = [];
     if ($user_id === 1) {
-        $stmt = $conn->prepare("SELECT * FROM users WHERE id != 1");
+        $stmt = $conn->prepare("SELECT * FROM users WHERE id != 1 ORDER BY status ASC");
         $stmt->execute();
         $result = $stmt->get_result();
         if ($result->num_rows > 0) {
@@ -124,6 +129,23 @@ function getUserOrCreate(ServerRequestInterface $request)
     $conn->close();
 
     return Response::json(["user" => $user, "admin" => $admin, "messages" => $messages, "users" => $users]);
+}
+
+function updateUserStatus($room, $status = 0)
+{
+    if (empty($room))
+        return;
+    try {
+        $conn = connectToDatabase();
+        $stmt = $conn->prepare("UPDATE users SET status = ? WHERE room = ?");
+        $stmt->bind_param("is", $status, $room);
+        $stmt->execute();
+
+        $stmt->close();
+        $conn->close();
+    } catch (\Throwable $th) {
+        print_r($th);
+    }
 }
 
 function saveMessage($message, $sent = true)
@@ -171,8 +193,6 @@ function saveMessage($message, $sent = true)
     $stmt->close();
     $conn->close();
 }
-
-
 
 function generateUniqueId($data = "message")
 {

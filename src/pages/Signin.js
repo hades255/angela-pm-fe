@@ -25,7 +25,13 @@ const Signin = () => {
         dispatch(
           login({ user: response.data.user, admin: response.data.admin })
         );
-
+        socket.send(
+          JSON.stringify({
+            room: response.data.user.room,
+            type: "login",
+            data: response.data.user.id,
+          })
+        );
         if (response.data.user.id === response.data.admin.id) {
           dispatch(
             initMessage({

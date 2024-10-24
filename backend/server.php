@@ -22,16 +22,18 @@ class Chat implements MessageComponentInterface
 {
     protected $clients;
     protected $rooms;
+    protected $admins;
 
     public function __construct()
     {
         $this->clients = new \SplObjectStorage;
+        $this->admins = new \SplObjectStorage;
         $this->rooms = [];
     }
 
     public function onOpen(ConnectionInterface $conn)
     {
-        $this->clients->attach($conn);
+        // $this->clients->attach($conn);
         echo "New connection! ({$conn->resourceId})\n";
     }
 
@@ -48,18 +50,34 @@ class Chat implements MessageComponentInterface
 
         $this->rooms[$room]->attach($from);
 
+        if ($type === "login") {
+            if ($room === "admin-room") $this->admins->attach($from);
+            $this->clients->attach($from, $room);
+        }
+
         if ($type === "message") {
             saveMessage($data);
+
+            if ($room !== "admin-room") {
+                foreach ($this->admins as $key => $admin) {
+                    $admin->send($msg);
+                }
+            }
+
+            sleep(1);
             if (count($this->rooms[$room]) == 1) {
-                sleep(1);
                 $newMessage = createMessage($room, "Hi, this is from admin", 1, $data->to);
                 saveMessage($newMessage, false);
                 $from->send(json_encode(['room' => $room, 'type' => 'message', 'data' => $newMessage]));
-            } else {
-                foreach ($this->rooms[$room] as $client) {
-                    if ($from !== $client) {
-                        $client->send(json_encode(['room' => $room, 'type' => 'message', 'data' => $data]));
-                    }
+            }
+        }
+
+        if ($type === "reply") {
+            saveMessage($data);
+
+            foreach ($this->rooms[$room] as $client) {
+                if ($from !== $client) {
+                    $client->send(json_encode(['room' => $room, 'type' => 'message', 'data' => $data]));
                 }
             }
         }
@@ -67,12 +85,18 @@ class Chat implements MessageComponentInterface
 
     public function onClose(ConnectionInterface $conn)
     {
-        $this->clients->detach($conn);
+        if ($this->clients->contains($conn)) {
+            updateUserStatus($this->clients[$conn], 2);
+            $this->clients->detach($conn);
+        }
         foreach ($this->rooms as $room => $clients) {
             if ($clients->contains($conn)) {
                 $clients->detach($conn);
             }
         }
+        if ($this->admins->contains($conn))
+            $this->admins->detach($conn);
+
         echo "Connection {$conn->resourceId} has disconnected\n";
     }
 

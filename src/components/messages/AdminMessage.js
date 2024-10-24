@@ -3,6 +3,7 @@ import ChatPanel from "./chatpanel";
 import PinnedPanel from "./pinnedpanel";
 import LeftVectorIcon from "../../assets/icons/vector/Left";
 import RightVectorIcon from "../../assets/icons/vector/Right";
+import { UserHeadItem } from "./Message";
 import classNames from "classnames";
 
 const AdminMessage = ({ setShowUsersPanel, hide }) => {
@@ -24,12 +25,15 @@ const AdminMessage = ({ setShowUsersPanel, hide }) => {
   }, []);
 
   return (
-    <div
-      className={classNames("flex-grow h-full w-full flex flex-col", {
-        "w-[calc(100vw_-_508px)] overflow-hidden border rounded-[12px]": hide,
-      })}
-    >
-      <div className="w-full h-[68px] rounded-tl-[12px] xl:rounded-tl-none rounded-tr-[12px] border border-[#E0E5F2] flex items-center justify-between px-[18px]">
+    <div className="w-full h-full">
+      <div
+        className={classNames(
+          "w-full h-[68px] rounded-tl-none rounded-tr-[12px] border border-[#E0E5F2] flex items-center justify-between px-[18px]",
+          {
+            "rounded-tl-[12px]": hide,
+          }
+        )}
+      >
         <div className="flex items-center gap-3">
           <div
             className="cursor-pointer px-2 xl:hidden"
@@ -41,24 +45,7 @@ const AdminMessage = ({ setShowUsersPanel, hide }) => {
               <LeftVectorIcon width={12} height={18} />
             )}
           </div>
-          <div className="relative">
-            <img
-              src="/avatars/user5.png"
-              alt="user 5"
-              width={40}
-              height={40}
-              className="rounded-[58px] min-w-10 min-h-10 max-w-10 max-h-10"
-            />
-            <span className="absolute bottom-[2px] right-[2px] w-2 h-2 border rounded-lg bg-green-500"></span>
-          </div>
-          <div className="flex flex-col">
-            <div className="text-[#2D396B] font-bold text-nowrap">
-              User Contact Name
-            </div>
-            <div className="text-sm text-[#34335B] text-nowrap">
-              Active 28 min ago
-            </div>
-          </div>
+          <UserHeadItem />
         </div>
         <div
           className="cursor-pointer px-2 md:hidden"

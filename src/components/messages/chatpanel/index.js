@@ -47,7 +47,7 @@ const ChatPanel = ({ hide }) => {
             type === "message" ? (
               <ChatItem
                 key={item.id}
-                mine={user.id.toString() == item.from.toString()}
+                mine={user.id.toString() === item.from.toString()}
                 message={item}
                 me={user}
                 oppo={selectedUser}

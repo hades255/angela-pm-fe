@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import ChatPanel from "./chatpanel";
 import PinnedPanel from "./pinnedpanel";
 import LeftVectorIcon from "../../assets/icons/vector/Left";
@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import classNames from "classnames";
 import moment from "moment";
 import AnimTypingIcon from "../../assets/icons/loader/AnimTyping";
+import { useAuth } from "../../contexts/AuthContext";
 
 const Message = () => {
   const [showPinnedPanel, setShowPinnedPanel] = useState(false);
@@ -51,50 +52,82 @@ const Message = () => {
 
 export default Message;
 
-const UserHeadItem = () => {
-  const { status, lastViewed } = useSelector((state) => state.message);
+export const UserHeadItem = () => {
+  const { isAdmin } = useAuth();
+  const { status, lastViewed, selectedUser } = useSelector(
+    (state) => state.message
+  );
+
+  const _status = useMemo(() => {
+    if (isAdmin) return selectedUser.status;
+    return status;
+  }, [isAdmin, status, selectedUser]);
+
   return (
     <div className="flex items-center gap-3">
-      <div className="relative">
-        <img
-          src="/avatars/user0.png"
-          alt="user 0"
-          width={40}
-          height={40}
-          className="rounded-[58px] min-w-10 min-h-10 max-w-10 max-h-10"
-        />
-        <span
-          className={classNames(
-            "absolute bottom-[2px] right-[2px] w-2 h-2 border rounded-lg",
-            {
-              "bg-[#24D164]": status === 0 || status === 3,
-              "bg-[#FFAA05]": status === 1,
-              "bg-[#F73164]": status === 2,
-              "bg-[#34335B]": status > 3,
-            }
-          )}
-        ></span>
-      </div>
+      <UserAvatar avatar={selectedUser.avatar} status={_status} />
       <div className="flex flex-col">
-        <div className="text-[#2D396B] font-bold text-nowrap">Angela L.</div>
+        <div className="text-[#2D396B] font-bold text-nowrap">
+          {selectedUser.name}
+        </div>
         <div
           className={classNames("text-sm text-nowrap", {
-            "text-[#24D164]": status === 0 || status === 3,
-            "text-[#FFAA05]": status === 1,
-            "text-[#F73164]": status === 2,
-            "text-[#34335B]": status > 3,
+            "text-[#24D164]": !isAdmin && (_status === 0 || _status === 3),
+            "text-[#34335B]": _status === 0 && _status === 3 && isAdmin,
           })}
         >
-          {status === 0 && "online"}
-          {(status === 1 || status === 2 || status > 3) &&
-            moment(lastViewed).fromNow()}
-          {status == 3 && (
+          {_status === 0 && !isAdmin && "online"}
+          {(_status === 1 ||
+            _status === 2 ||
+            _status > 3 ||
+            (_status === 0 && isAdmin)) &&
+            moment(isAdmin ? selectedUser.updated_at : lastViewed).fromNow()}
+          {_status === 3 && (
             <span className="flex items-center">
               <AnimTypingIcon color="#24D164" width={32} /> Typing
             </span>
           )}
         </div>
       </div>
+    </div>
+  );
+};
+
+export const UserAvatar = ({
+  avatar,
+  status,
+  width = 40,
+  height = 40,
+  class1 = "",
+  class2 = "",
+  onClick,
+}) => {
+  const _status = Number(status);
+
+  return (
+    <div className="relative" onClick={onClick}>
+      <img
+        src={`/avatars/${avatar}`}
+        alt="user avatar"
+        width={width}
+        height={height}
+        className={classNames(
+          "rounded-[58px] min-w-10 min-h-10 max-w-10 max-h-10 cursor-pointer",
+          class1
+        )}
+      />
+      <span
+        className={classNames(
+          "absolute bottom-[2px] right-[2px] w-2 h-2 border rounded-lg",
+          {
+            "bg-[#24D164]": _status === 0 || _status === 3,
+            "bg-[#FFAA05]": _status === 1,
+            "bg-[#F73164]": _status === 2,
+            "bg-[#34335B]": _status > 3,
+          },
+          class2
+        )}
+      ></span>
     </div>
   );
 };

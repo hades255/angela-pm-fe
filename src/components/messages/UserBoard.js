@@ -4,6 +4,7 @@ import SearchIcon from "../../assets/icons/Search";
 import classNames from "classnames";
 import { useDispatch, useSelector } from "react-redux";
 import { setUserSelect } from "../../redux/messageSlice";
+import { UserAvatar } from "./Message";
 
 const UserBoard = ({ show }) => {
   return (
@@ -11,8 +12,7 @@ const UserBoard = ({ show }) => {
       className={classNames(
         "border-0 w-0 xl:w-[408px] xl:min-w-[408px] h-full rounded-s-[12px] xl:border border-[#E0E5F2] xl:flex xl:flex-col overflow-x-hidden transition-all",
         {
-          "w-[calc(100vw_-_140px)] max-w-[408px] !border flex flex-col rounded-[12px]":
-            show,
+          "w-full min-w-[408px] !border flex flex-col rounded-[12px]": show,
         }
       )}
     >
@@ -52,7 +52,7 @@ const AllUsers = () => {
   const filteredUsers = useMemo(() => {
     if (users && users.length) {
       let filtered = users.filter(
-        (item) => item.name.toLowerCase().indexOf(search.toLowerCase()) != -1
+        (item) => item.name.toLowerCase().indexOf(search.toLowerCase()) !== -1
       );
       return filtered;
     }
@@ -94,7 +94,7 @@ const AllUsers = () => {
 
 const OnlineUsers = () => {
   const dispatch = useDispatch();
-  const { users, selectedUser } = useSelector((state) => state.message);
+  const { users } = useSelector((state) => state.message);
 
   const handleSelect = useCallback(
     (selected) => dispatch(setUserSelect(selected)),
@@ -104,9 +104,11 @@ const OnlineUsers = () => {
   return (
     <>
       {users.length > 0 &&
-        users.map((item) => (
-          <OnlineUserItem user={item} key={item.id} onClick={handleSelect} />
-        ))}
+        users
+          .filter((item) => item.status !== 2 && item.status !== 1)
+          .map((item) => (
+            <OnlineUserItem user={item} key={item.id} onClick={handleSelect} />
+          ))}
     </>
   );
 };
@@ -115,15 +117,14 @@ const OnlineUserItem = ({ user, onClick }) => {
   const handleClick = useCallback(() => onClick(user), [onClick, user]);
 
   return (
-    <div className="relative" onClick={handleClick}>
-      <img
-        src={`/avatars/${user.avatar}`}
-        alt={user.avatar}
-        width={58}
-        height={58}
-        className="rounded-[58px] w-[58px] min-w-[58px]"
-      />
-      <span className="absolute bottom-[2px] right-[2px] w-[11px] h-[11px] border rounded-lg bg-green-500"></span>
-    </div>
+    <UserAvatar
+      onClick={handleClick}
+      avatar={user.avatar}
+      status={user.status}
+      width={58}
+      height={58}
+      class1="w-[58px] min-w-[58px] h-[58px] min-h-[58px]"
+      class2="w-[11px] h-[11px]"
+    />
   );
 };
