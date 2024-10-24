@@ -1,22 +1,24 @@
-import React, { useCallback, useEffect, useRef, useState, useContext } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import moment from "moment";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 
-import { addMessage } from "../../../redux/messageSlice";
+import { addMessage, setStatus } from "../../../redux/messageSlice";
 import SendIcon from "../../../assets/icons/input/Send";
 import EmojiIcon from "../../../assets/icons/input/Emoji";
 import AttachmentIcon from "../../../assets/icons/input/Attachment";
 
-import { WebSocketContext } from "../../../WebSocketContext";
+import { useWebSocket } from "../../../WebSocketContext";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const ChatInput = () => {
   const dispatch = useDispatch();
+  const user = useAuth();
   const textAreaRef = useRef(null);
   const [input, setInput] = useState("");
   const [files, setFiles] = useState([]);
-  const { socket, message } = useContext(WebSocketContext);
+  const { socket } = useWebSocket();
 
   const handleInputChange = useCallback(
     ({ target: { value } }) => setInput(value),
@@ -30,7 +32,7 @@ const ChatInput = () => {
           room: "room",
           id: Date.now(),
           text: message,
-          from: { id: "2", name: "Elon Mask", avatar: "user1.png" },
+          from: { id: user.id, name: user.name, avatar: user.avatar },
           to: { id: "1", name: "admin", avatar: "user0.png" },
           attachments: [],
           created_at: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
@@ -38,13 +40,14 @@ const ChatInput = () => {
           status: "read",
         })
       );
+      dispatch(setStatus(3));
       console.log(socket);
       if (socket) {
         socket.send(JSON.stringify({ room: "room", message }));
       }
       setInput("");
     },
-    [dispatch]
+    [dispatch, user, socket]
   );
 
   const handleKeyDown = useCallback(

@@ -1,11 +1,9 @@
 import React, { useCallback, useState } from "react";
 import { useDispatch } from "react-redux";
 import { login } from "../redux/authSlice";
-import { useNavigate } from "react-router-dom";
 
 const Signin = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const [username, setUsername] = useState("admin");
 
   const handleInputChange = useCallback(({ target: { name, value } }) => {
@@ -15,16 +13,17 @@ const Signin = () => {
   const handleSubmit = useCallback(
     (e) => {
       e.preventDefault();
+      const id = Math.ceil(Math.random() * 7);
       dispatch(
         login({
-          id: "3",
+          id,
           name: username,
-          avatar: "user3.png",
+          avatar: `user${id}.png`,
         })
       );
       // navigate("/message");
     },
-    [username, dispatch, navigate]
+    [username, dispatch]
   );
 
   return (

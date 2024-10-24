@@ -84,16 +84,21 @@ const messageSlice = createSlice({
   name: "message",
   initialState: {
     messages: [...messages],
+    status: 0, //  0-online  1-idle  2-offline 3-typing
+    lastViewed: Date.now(),
   },
   reducers: {
     addMessage: (state, payload) => {
       console.log(payload.payload);
       state.messages.push(payload.payload);
     },
+    setStatus: (state, payload) => {
+      state.status = payload.payload;
+    },
   },
 });
 
-export const { addMessage } = messageSlice.actions;
+export const { addMessage, setStatus } = messageSlice.actions;
 export default messageSlice.reducer;
 
 const MESSAGE = {

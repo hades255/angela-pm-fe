@@ -15,8 +15,10 @@ const authSlice = createSlice({
       state.name = payload.payload.name;
       state.avatar = payload.payload.avatar;
       state.isAuthenticated = true;
-      if (payload.payload.name === "admin") state.isAdmin = true;
-      else state.isAdmin = false;
+      if (payload.payload.name === "admin") {
+        state.isAdmin = true;
+        state.id = 1;
+      } else state.isAdmin = false;
     },
     logout: (state) => {
       state.id = "";
