@@ -41,7 +41,6 @@ class Chat implements MessageComponentInterface
 
     public function callOpenAI($prompt)
     {
-        // Initialize the Guzzle HTTP client
         $client = new Client(['base_uri' => 'https://api.openai.com/']);
 
         try {
