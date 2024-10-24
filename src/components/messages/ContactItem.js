@@ -1,9 +1,22 @@
 import classNames from "classnames";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { UserAvatar } from "./Message";
 import moment from "moment";
+import { useSelector } from "react-redux";
 
 const ContactItem = ({ user, active, onClick }) => {
+  const messages = useSelector((state) => state.message.messages);
+
+  const news = useMemo(() => {
+    if (active) return 0;
+    return messages.filter(
+      (item) =>
+        item.room === user.room &&
+        item.from.toString() === user.id.toString() &&
+        item.status === "unread"
+    ).length;
+  }, [messages, active, user]);
+
   const handleClick = useCallback(() => onClick(user), [onClick, user]);
 
   return (
@@ -36,9 +49,9 @@ const ContactItem = ({ user, active, onClick }) => {
           Recent Message of chat display here
         </div>
       </div>
-      {user.news && (
+      {news > 0 && (
         <span className="absolute bottom-7 right-4 w-5 h-5 rounded-[20px] bg-[#F73164] text-xs text-white flex justify-center items-center">
-          {user.news || 0}
+          {news || 0}
         </span>
       )}
     </div>

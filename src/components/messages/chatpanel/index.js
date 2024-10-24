@@ -2,9 +2,11 @@ import React, { useEffect, useMemo, useRef } from "react";
 import ChatInput from "./ChatInput";
 import MoreIcon from "../../../assets/icons/More";
 import classNames from "classnames";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useAuth } from "../../../contexts/AuthContext";
 import moment from "moment";
+import useOnScreen from "../../../hooks/useOnScreen";
+import { setMessageStatus } from "../../../redux/messageSlice";
 
 const ChatPanel = ({ hide }) => {
   const user = useAuth();
@@ -75,12 +77,24 @@ const ChatItem = ({ message, mine, me, oppo }) => {
     return { __html: message.text || "" };
   };
 
+  const { isAdmin } = useAuth();
+  const dispatch = useDispatch();
+  const ref = useRef();
+  const isVisible = useOnScreen(ref);
+
+  useEffect(() => {
+    if (isAdmin && !mine && message.status === "unread" && isVisible) {
+      dispatch(setMessageStatus({ id: message.id }));
+    }
+  }, [isAdmin, isVisible, mine, message, dispatch]);
+
   return (
     <div
       className={classNames("flex", {
         "justify-end": mine,
         "justify-start": !mine,
       })}
+      ref={ref}
     >
       <div className="max-w-full sm:max-w-[75%]">
         <div className="flex justify-stretch">

@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { setMessageStatusAPI } from "../apis";
 
 const messageSlice = createSlice({
   name: "message",
@@ -30,11 +31,24 @@ const messageSlice = createSlice({
     setUserSelect: (state, payload) => {
       state.selectedUser = payload.payload;
     },
+    setMessageStatus: (state, payload) => {
+      state.messages = state.messages.map((item) => ({
+        ...item,
+        status: item.id === payload.payload.id ? "read" : item.status,
+      }));
+      setMessageStatusAPI(payload.payload.id);
+    },
   },
 });
 
-export const { addMessage, setMessage, setStatus, initMessage, setUserSelect } =
-  messageSlice.actions;
+export const {
+  addMessage,
+  setMessage,
+  setStatus,
+  initMessage,
+  setUserSelect,
+  setMessageStatus,
+} = messageSlice.actions;
 export default messageSlice.reducer;
 
 const MESSAGE = {

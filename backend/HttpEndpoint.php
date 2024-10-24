@@ -19,37 +19,6 @@ class HttpEndpoint
 
 function connectToDatabase()
 {
-    /**CREATE TABLE users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        room VARCHAR(255) NOT NULL,
-        avatar VARCHAR(255),
-        status INT DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        );
-        INSERT INTO `users` (`id`, `name`, `room`, `avatar`, `status`) VALUES (1, 'admin', 'admin-room', 'user0.png', 0)
-     */
-    /**CREATE TABLE attachments (
-        id VARCHAR(50) PRIMARY KEY,
-        user_id VARCHAR(50) NOT NULL,
-        message_id VARCHAR(50) NOT NULL,
-        url TEXT NOT NULL,
-        type VARCHAR(50) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        );
-     */
-    /**CREATE TABLE messages (
-        id VARCHAR(50) PRIMARY KEY,
-        text TEXT NOT NULL,
-        `from` VARCHAR(50) NOT NULL,
-        `to` VARCHAR(50) NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        status ENUM('read', 'unread') NOT NULL
-        );
-     */
 
     $servername = "127.0.0.1";
     $username = "root";
@@ -145,6 +114,26 @@ function updateUserStatus($room, $status = 0)
         $conn->close();
     } catch (\Throwable $th) {
         print_r($th);
+    }
+}
+
+function updateMessageStatus(ServerRequestInterface $request)
+{
+    try {
+        $rawBody = $request->getBody()->getContents();
+        $parsedBody = json_decode($rawBody, true);
+
+        $id = $parsedBody['id'] ?? null;
+        $status = $parsedBody['status'] ?? null;
+        $conn = connectToDatabase();
+
+        $stmt = $conn->prepare("UPDATE messages SET status = ? WHERE id = ?");
+        $stmt->bind_param("si", $status, $id);
+        $stmt->execute();
+        return Response::json(["message" => "OK"]);
+    } catch (\Throwable $th) {
+        print_r($th);
+        return Response::json(["error" => $th])->withStatus(400);
     }
 }
 

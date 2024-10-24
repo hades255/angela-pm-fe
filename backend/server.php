@@ -52,7 +52,7 @@ class Chat implements MessageComponentInterface
                     'Content-Type' => 'application/json',
                 ],
                 'json' => [
-                    'model' => 'gpt-4o',
+                    'model' => 'gpt-4',
                     'messages' => [
                         ['role' => 'system', 'content' => 'You are a helpful assistant.'],
                         ['role' => 'user', 'content' => $prompt],
@@ -182,6 +182,11 @@ $httpServer = new HttpServer(function (ServerRequestInterface $request) {
                 return $response->withBody(getUserOrCreate($request)->getBody());
             }
             return Response::json(["user" => "user"]);
+        case '/api/message/status':
+            if ($method === 'POST') {
+                return $response->withBody(updateMessageStatus($request)->getBody());
+            }
+            return Response::json(["user" => "user"]);
         case '/chat':
             $html = file_get_contents("./index.html");
             return $response->html($html);
@@ -194,5 +199,5 @@ $httpServer = new HttpServer(function (ServerRequestInterface $request) {
 
 $socket = new SocketServer('0.0.0.0:8000');
 $httpServer->listen($socket);
-echo("Server started");
+echo ("Server started");
 $app->run();
