@@ -27,3 +27,4 @@ yarn-debug.log*
 yarn-error.log*
 
 /backend/vendor
+/backend/.env

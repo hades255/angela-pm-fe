@@ -29,10 +29,11 @@ class Chat implements MessageComponentInterface
 
     public function __construct()
     {
-        $dotenv = Dotenv::createImmutable(__DIR__);  // Adjust path if needed
+        $dotenv = Dotenv::createImmutable(__DIR__);
         $dotenv->load();
         // constants
         $this->open_ai_key = $_ENV["OPENAI_API_KEY"];
+        print($_ENV["OPENAI_API_KEY"]);
 
         $this->clients = new \SplObjectStorage;
         $this->admins = new \SplObjectStorage;
@@ -65,7 +66,6 @@ class Chat implements MessageComponentInterface
             $body = json_decode($response->getBody(), true);
             return $body['choices'][0]['message']['content'];
         } catch (\Exception $e) {
-            // Handle errors (e.g., network or API errors)
             return 'Error: ' . $e->getMessage();
         }
     }
@@ -92,6 +92,13 @@ class Chat implements MessageComponentInterface
         if ($type === "login") {
             if ($room === "admin-room") $this->admins->attach($from);
             $this->clients->attach($from, $room);
+        }
+
+        if ($type === "select" && !empty($data)) {
+            foreach ($this->rooms[$data] as $client) {
+                if ($from == $client)
+                    $this->rooms[$data]->detach($from);
+            }
         }
 
         if ($type === "message") {
@@ -187,5 +194,5 @@ $httpServer = new HttpServer(function (ServerRequestInterface $request) {
 
 $socket = new SocketServer('0.0.0.0:8000');
 $httpServer->listen($socket);
-
+echo("Server started");
 $app->run();

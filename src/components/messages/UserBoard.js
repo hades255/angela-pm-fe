@@ -5,6 +5,7 @@ import classNames from "classnames";
 import { useDispatch, useSelector } from "react-redux";
 import { setUserSelect } from "../../redux/messageSlice";
 import { UserAvatar } from "./Message";
+import { useWebSocket } from "../../WebSocketContext";
 
 const UserBoard = ({ show }) => {
   return (
@@ -36,6 +37,7 @@ export default UserBoard;
 
 const AllUsers = () => {
   const dispatch = useDispatch();
+  const { socket } = useWebSocket();
   const { users, selectedUser } = useSelector((state) => state.message);
   const [search, setSearch] = useState("");
 
@@ -45,8 +47,17 @@ const AllUsers = () => {
   );
 
   const handleSelect = useCallback(
-    (selected) => dispatch(setUserSelect(selected)),
-    [dispatch]
+    (selected) => {
+      dispatch(setUserSelect(selected));
+      socket.send(
+        JSON.stringify({
+          room: selected.room,
+          type: "select",
+          data: selectedUser?.room || "",
+        })
+      );
+    },
+    [dispatch, socket, selectedUser]
   );
 
   const filteredUsers = useMemo(() => {
@@ -93,12 +104,22 @@ const AllUsers = () => {
 };
 
 const OnlineUsers = () => {
+  const { socket } = useWebSocket();
   const dispatch = useDispatch();
-  const { users } = useSelector((state) => state.message);
+  const { users, selectedUser } = useSelector((state) => state.message);
 
   const handleSelect = useCallback(
-    (selected) => dispatch(setUserSelect(selected)),
-    [dispatch]
+    (selected) => {
+      dispatch(setUserSelect(selected));
+      socket.send(
+        JSON.stringify({
+          room: selected.room,
+          type: "select",
+          data: selectedUser?.room || "",
+        })
+      );
+    },
+    [dispatch, socket, setUserSelect]
   );
 
   return (
