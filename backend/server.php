@@ -10,6 +10,8 @@ use React\Http\HttpServer;
 use React\Socket\SocketServer;
 use Psr\Http\Message\ServerRequestInterface;
 use React\Http\Message\Response;
+use GuzzleHttp\Client;
+use Dotenv\Dotenv;
 
 date_default_timezone_set('UTC');
 
@@ -22,13 +24,51 @@ class Chat implements MessageComponentInterface
 {
     protected $clients;
     protected $rooms;
+    protected $open_ai_key;
     protected $admins;
 
     public function __construct()
     {
+        $dotenv = Dotenv::createImmutable(__DIR__);  // Adjust path if needed
+        $dotenv->load();
+        // constants
+        $this->open_ai_key = $_ENV["OPENAI_API_KEY"];
+
         $this->clients = new \SplObjectStorage;
         $this->admins = new \SplObjectStorage;
         $this->rooms = [];
+    }
+
+    public function callOpenAI($prompt)
+    {
+        // Initialize the Guzzle HTTP client
+        $client = new Client(['base_uri' => 'https://api.openai.com/']);
+
+        try {
+            // Send a POST request to the Chat Completions endpoint
+            $response = $client->post('v1/chat/completions', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->open_ai_key,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'model' => 'gpt-4o',
+                    'messages' => [
+                        ['role' => 'system', 'content' => 'You are a helpful assistant.'],
+                        ['role' => 'user', 'content' => $prompt],
+                    ],
+                    'temperature' => 0.7,
+                    'max_tokens' => 100,
+                ],
+            ]);
+
+            // Decode and return the response body
+            $body = json_decode($response->getBody(), true);
+            return $body['choices'][0]['message']['content'];
+        } catch (\Exception $e) {
+            // Handle errors (e.g., network or API errors)
+            return 'Error: ' . $e->getMessage();
+        }
     }
 
     public function onOpen(ConnectionInterface $conn)
@@ -66,7 +106,8 @@ class Chat implements MessageComponentInterface
 
             sleep(1);
             if (count($this->rooms[$room]) == 1) {
-                $newMessage = createMessage($room, "Hi, this is from admin", 1, $data->to);
+                $response = $this->callOpenAI($data->text);
+                $newMessage = createMessage($room, $response, 1, $data->to);
                 saveMessage($newMessage, false);
                 $from->send(json_encode(['room' => $room, 'type' => 'message', 'data' => $newMessage]));
             }
