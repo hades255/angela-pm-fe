@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
-import moment from "moment";
+import { useDispatch, useSelector } from "react-redux";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
+import { v4 as uuidv4 } from 'uuid';
 
 import { addMessage, setStatus } from "../../../redux/messageSlice";
 import SendIcon from "../../../assets/icons/input/Send";
@@ -14,11 +14,12 @@ import { useAuth } from "../../../contexts/AuthContext";
 
 const ChatInput = () => {
   const dispatch = useDispatch();
+  const { room } = useSelector((state) => state.message);
   const user = useAuth();
+  const { socket } = useWebSocket();
   const textAreaRef = useRef(null);
   const [input, setInput] = useState("");
   const [files, setFiles] = useState([]);
-  const { socket } = useWebSocket();
 
   const handleInputChange = useCallback(
     ({ target: { value } }) => setInput(value),
@@ -27,27 +28,25 @@ const ChatInput = () => {
 
   const onSendMessage = useCallback(
     (message) => {
-      dispatch(
-        addMessage({
-          room: "room",
-          id: Date.now(),
-          text: message,
-          from: { id: user.id, name: user.name, avatar: user.avatar },
-          to: { id: "1", name: "admin", avatar: "user0.png" },
-          attachments: [],
-          created_at: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
-          updated_at: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
-          status: "read",
-        })
-      );
+      const _msg = {
+        room,
+        id: uuidv4(),
+        text: message,
+        from: user.id,
+        to: user.admin.id,
+        attachments: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        status: "unread",
+      };
+      dispatch(addMessage(_msg));
       dispatch(setStatus(3));
-      console.log(socket);
       if (socket) {
-        socket.send(JSON.stringify({ room: "room", message }));
+        socket.send(JSON.stringify({ room, type: "message", data: _msg }));
       }
       setInput("");
     },
-    [dispatch, user, socket]
+    [dispatch, user, socket, room]
   );
 
   const handleKeyDown = useCallback(

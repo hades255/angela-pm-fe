@@ -7,8 +7,8 @@ import { useAuth } from "../../../contexts/AuthContext";
 import moment from "moment";
 
 const ChatPanel = ({ hide }) => {
-  const userId = useAuth().id;
-  const messages = useSelector((state) => state.message.messages);
+  const user = useAuth();
+  const { messages, selectedUser } = useSelector((state) => state.message);
 
   const lastShow = useRef(null);
 
@@ -16,10 +16,13 @@ const ChatPanel = ({ hide }) => {
     let result = [];
     let dt = "";
     messages.forEach((item) => {
-      const date = item.updated_at.substring(0, 10);
+      const date = new Date(item.updated_at).toLocaleDateString();
       if (dt !== date) {
         dt = date;
-        result.push({ type: "day", item: date });
+        result.push({
+          type: "day",
+          item: { id: `${date}-${item.id}`, text: date },
+        });
       }
       result.push({ type: "message", item });
     });
@@ -44,11 +47,13 @@ const ChatPanel = ({ hide }) => {
             type === "message" ? (
               <ChatItem
                 key={item.id}
-                mine={userId === item.from.id}
+                mine={user.id.toString() == item.from.toString()}
                 message={item}
+                me={user}
+                oppo={selectedUser}
               />
             ) : (
-              <DayDivider date={item} key={item} />
+              <DayDivider date={item} key={item.id} />
             )
           )}
           <div className="invisible mt-16" ref={lastShow}></div>
@@ -61,7 +66,7 @@ const ChatPanel = ({ hide }) => {
 
 export default ChatPanel;
 
-const ChatItem = ({ message, mine }) => {
+const ChatItem = ({ message, mine, me, oppo }) => {
   const createMarkup = () => {
     return { __html: message.text || "" };
   };
@@ -87,7 +92,7 @@ const ChatItem = ({ message, mine }) => {
               {!mine && (
                 <div className="min-w-12 flex items-end">
                   <img
-                    src={`/avatars/${message.from.avatar}`}
+                    src={`/avatars/${oppo.avatar}`}
                     alt="user avatar"
                     className="w-9 h-9 min-w-9 rounded-3xl"
                   />
@@ -106,7 +111,7 @@ const ChatItem = ({ message, mine }) => {
               {mine && (
                 <div className="min-w-12 flex justify-end items-end">
                   <img
-                    src={`/avatars/${message.from.avatar}`}
+                    src={`/avatars/${me.avatar}`}
                     alt="user avatar"
                     className="w-9 h-9 min-w-9 rounded-3xl"
                   />
@@ -157,7 +162,9 @@ const DayDivider = ({ date }) => {
   return (
     <div className="mt-2 mb-1 flex justify-stretch items-center">
       <div className="border-t-2 border-[#34335B10] w-full"></div>
-      <div className="text-[#34335BA0] font-[500] text-nowrap mx-4">{date}</div>
+      <div className="text-[#34335BA0] font-[500] text-nowrap mx-4">
+        {moment(date.text).format("MMMM D, YYYY")}
+      </div>
       <div className="border-t-2 border-[#34335B10] w-full"></div>
     </div>
   );

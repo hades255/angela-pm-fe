@@ -1,29 +1,55 @@
 import React, { useCallback, useState } from "react";
 import { useDispatch } from "react-redux";
 import { login } from "../redux/authSlice";
+import { useWebSocket } from "../WebSocketContext";
+import { initMessage } from "../redux/messageSlice";
+import axios from "axios";
 
 const Signin = () => {
   const dispatch = useDispatch();
+  const { socket } = useWebSocket();
   const [username, setUsername] = useState("admin");
 
-  const handleInputChange = useCallback(({ target: { name, value } }) => {
+  const handleInputChange = useCallback(({ target: { value } }) => {
     setUsername(value);
   }, []);
 
   const handleSubmit = useCallback(
-    (e) => {
+    async (e) => {
       e.preventDefault();
-      const id = Math.ceil(Math.random() * 7);
-      dispatch(
-        login({
-          id,
+      try {
+        const response = await axios.post("http://127.0.0.1:8000/api/login", {
           name: username,
-          avatar: `user${id}.png`,
-        })
-      );
-      // navigate("/message");
+        });
+        console.log(response.data);
+        dispatch(
+          login({ user: response.data.user, admin: response.data.admin })
+        );
+
+        if (response.data.user.id === response.data.admin.id) {
+          dispatch(
+            initMessage({
+              room: response.data.user.room,
+              messages: [],
+              select: null,
+              users: response.data.users,
+            })
+          );
+        } else {
+          dispatch(
+            initMessage({
+              room: response.data.user.room,
+              messages: response.data.messages,
+              select: response.data.admin,
+              users: [],
+            })
+          );
+        }
+      } catch (error) {
+        console.log(error);
+      }
     },
-    [username, dispatch]
+    [username, dispatch, socket]
   );
 
   return (

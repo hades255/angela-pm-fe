@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { addMessage, setStatus } from "./redux/messageSlice";
-import moment from "moment";
 
 export const WebSocketContext = createContext(null);
 
@@ -20,19 +19,7 @@ export const WebSocketProvider = ({ children }) => {
     ws.onmessage = (event) => {
       setMessage(event.data);
       const data = JSON.parse(event.data);
-      dispatch(
-        addMessage({
-          room: "room",
-          id: Date.now(),
-          text: data.message,
-          from: { id: "1", name: "admin", avatar: "user0.png" },
-          to: { id: "2", name: "Elon Mask", avatar: "user1.png" },
-          attachments: [],
-          created_at: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
-          updated_at: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
-          status: "read",
-        })
-      );
+      dispatch(addMessage(data.data));
       dispatch(setStatus(0));
     };
 

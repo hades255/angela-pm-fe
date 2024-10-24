@@ -58,7 +58,7 @@ messages: [
 
 ### For Admin
 
-<details open>
+<details>
   <summary>
     login
   </summary>
@@ -115,3 +115,7 @@ messages: [
 ```
 
 </details>
+
+### Common
+
+- file upload
