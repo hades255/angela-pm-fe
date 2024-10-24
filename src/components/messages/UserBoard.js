@@ -53,7 +53,7 @@ const AllUsers = () => {
         JSON.stringify({
           room: selected.room,
           type: "select",
-          data: selectedUser?.room || "",
+          data: selectedUser ? selectedUser.room : "",
         })
       );
     },
@@ -115,11 +115,11 @@ const OnlineUsers = () => {
         JSON.stringify({
           room: selected.room,
           type: "select",
-          data: selectedUser?.room || "",
+          data: selectedUser ? selectedUser.room : "",
         })
       );
     },
-    [dispatch, socket, setUserSelect]
+    [dispatch, socket, selectedUser]
   );
 
   return (
