@@ -1,22 +1,25 @@
-import React, { useCallback, useEffect, useRef, useState, useContext } from "react";
-import { useDispatch } from "react-redux";
-import moment from "moment";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
+import { v4 as uuidv4 } from "uuid";
 
-import { addMessage } from "../../../redux/messageSlice";
+import { addMessage, setStatus } from "../../../redux/messageSlice";
 import SendIcon from "../../../assets/icons/input/Send";
 import EmojiIcon from "../../../assets/icons/input/Emoji";
 import AttachmentIcon from "../../../assets/icons/input/Attachment";
 
-import { WebSocketContext } from "../../../WebSocketContext";
+import { useWebSocket } from "../../../WebSocketContext";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const ChatInput = () => {
   const dispatch = useDispatch();
+  const { room, selectedUser } = useSelector((state) => state.message);
+  const user = useAuth();
+  const { socket } = useWebSocket();
   const textAreaRef = useRef(null);
   const [input, setInput] = useState("");
   const [files, setFiles] = useState([]);
-  const { socket, message } = useContext(WebSocketContext);
 
   const handleInputChange = useCallback(
     ({ target: { value } }) => setInput(value),
@@ -25,26 +28,31 @@ const ChatInput = () => {
 
   const onSendMessage = useCallback(
     (message) => {
-      dispatch(
-        addMessage({
-          room: "room",
-          id: Date.now(),
-          text: message,
-          from: { id: "2", name: "Elon Mask", avatar: "user1.png" },
-          to: { id: "1", name: "admin", avatar: "user0.png" },
-          attachments: [],
-          created_at: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
-          updated_at: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
-          status: "read",
-        })
-      );
-      console.log(socket);
+      const _msg = {
+        room: user.isAdmin ? selectedUser.room : room,
+        id: uuidv4(),
+        text: message,
+        from: user.id,
+        to: user.isAdmin ? selectedUser.id : user.admin.id,
+        attachments: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        status: "unread",
+      };
+      if (!user.isAdmin) dispatch(setStatus(3));
+      dispatch(addMessage(_msg));
       if (socket) {
-        socket.send(JSON.stringify({ room: "room", message }));
+        socket.send(
+          JSON.stringify({
+            room: user.isAdmin ? selectedUser.room : room,
+            type: user.isAdmin ? "reply" : "message",
+            data: _msg,
+          })
+        );
       }
       setInput("");
     },
-    [dispatch]
+    [dispatch, user, socket, room, selectedUser]
   );
 
   const handleKeyDown = useCallback(

@@ -8,15 +8,18 @@ const authSlice = createSlice({
     avatar: "user1.png",
     isAuthenticated: false,
     isAdmin: false,
+    admin: null,
   },
   reducers: {
     login: (state, payload) => {
-      state.id = payload.payload.id;
-      state.name = payload.payload.name;
-      state.avatar = payload.payload.avatar;
+      state.id = payload.payload.user.id;
+      state.name = payload.payload.user.name;
+      state.avatar = payload.payload.user.avatar;
       state.isAuthenticated = true;
-      if (payload.payload.name === "admin") state.isAdmin = true;
-      else state.isAdmin = false;
+      state.admin = payload.payload.admin;
+      if (payload.payload.user.id === payload.payload.admin.id) {
+        state.isAdmin = true;
+      } else state.isAdmin = false;
     },
     logout: (state) => {
       state.id = "";

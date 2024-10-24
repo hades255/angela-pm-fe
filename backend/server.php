@@ -1,8 +1,11 @@
 <?php
+
+
+namespace MyApp;
+
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
 use Ratchet\App;
-use MyApp\HttpEndpoint;
 use React\Http\HttpServer;
 use React\Socket\SocketServer;
 use Psr\Http\Message\ServerRequestInterface;
@@ -10,14 +13,19 @@ use React\Http\Message\Response;
 use GuzzleHttp\Client;
 use Dotenv\Dotenv;
 
+date_default_timezone_set('UTC');
+
 require __DIR__ . '/vendor/autoload.php';
 require 'HttpEndpoint.php';
+
+
 
 class Chat implements MessageComponentInterface
 {
     protected $clients;
     protected $rooms;
     protected $open_ai_key;
+    protected $admins;
 
     public function __construct()
     {
@@ -27,8 +35,8 @@ class Chat implements MessageComponentInterface
         $this->open_ai_key = $_ENV["OPENAI_API_KEY"];
 
         $this->clients = new \SplObjectStorage;
+        $this->admins = new \SplObjectStorage;
         $this->rooms = [];
-
     }
 
     public function callOpenAI($prompt)
@@ -57,7 +65,7 @@ class Chat implements MessageComponentInterface
             // Decode and return the response body
             $body = json_decode($response->getBody(), true);
             return $body['choices'][0]['message']['content'];
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             // Handle errors (e.g., network or API errors)
             return 'Error: ' . $e->getMessage();
         }
@@ -65,15 +73,16 @@ class Chat implements MessageComponentInterface
 
     public function onOpen(ConnectionInterface $conn)
     {
-        $this->clients->attach($conn);
+        // $this->clients->attach($conn);
         echo "New connection! ({$conn->resourceId})\n";
     }
 
     public function onMessage(ConnectionInterface $from, $msg)
     {
-        $data = json_decode($msg);
-        $room = $data->room;
-        $message = $data->message;
+        $_msg = json_decode($msg);
+        $room = $_msg->room;
+        $type = $_msg->type;
+        $data = $_msg->data;
 
         if (!isset($this->rooms[$room])) {
             $this->rooms[$room] = new \SplObjectStorage;
@@ -81,13 +90,35 @@ class Chat implements MessageComponentInterface
 
         $this->rooms[$room]->attach($from);
 
-        if (count($this->rooms[$room]) == 1) {
-            $response = $this->callOpenAI($message);
-            $from->send(json_encode(['room' => $room, 'message' => $response]));
-        } else {
+        if ($type === "login") {
+            if ($room === "admin-room") $this->admins->attach($from);
+            $this->clients->attach($from, $room);
+        }
+
+        if ($type === "message") {
+            saveMessage($data);
+
+            if ($room !== "admin-room") {
+                foreach ($this->admins as $key => $admin) {
+                    $admin->send($msg);
+                }
+            }
+
+            sleep(1);
+            if (count($this->rooms[$room]) == 1) {
+                $response = $this->callOpenAI($data->text);
+                $newMessage = createMessage($room, $response, 1, $data->to);
+                saveMessage($newMessage, false);
+                $from->send(json_encode(['room' => $room, 'type' => 'message', 'data' => $newMessage]));
+            }
+        }
+
+        if ($type === "reply") {
+            saveMessage($data);
+
             foreach ($this->rooms[$room] as $client) {
                 if ($from !== $client) {
-                    $client->send(json_encode(['room' => $room, 'message' => $message]));
+                    $client->send(json_encode(['room' => $room, 'type' => 'message', 'data' => $data]));
                 }
             }
         }
@@ -95,12 +126,18 @@ class Chat implements MessageComponentInterface
 
     public function onClose(ConnectionInterface $conn)
     {
-        $this->clients->detach($conn);
+        if ($this->clients->contains($conn)) {
+            updateUserStatus($this->clients[$conn], 2);
+            $this->clients->detach($conn);
+        }
         foreach ($this->rooms as $room => $clients) {
             if ($clients->contains($conn)) {
                 $clients->detach($conn);
             }
         }
+        if ($this->admins->contains($conn))
+            $this->admins->detach($conn);
+
         echo "Connection {$conn->resourceId} has disconnected\n";
     }
 
@@ -116,21 +153,40 @@ $app = new App('localhost', 8080);
 $app->route('/chat', new Chat, ['*']);
 
 // HTTP server
+
 $httpServer = new HttpServer(function (ServerRequestInterface $request) {
     $path = $request->getUri()->getPath();
+    $method = $request->getMethod();
+
+    $response = new Response();
+    $response = $response
+        ->withHeader('Access-Control-Allow-Origin', '*')
+        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    if ($method === 'OPTIONS') {
+        return $response->withStatus(200);
+    }
+
     switch ($path) {
         case '/api':
-            return (new HttpEndpoint())($request);
+            return $response->withBody((new HttpEndpoint())($request)->getBody());
+        case '/api/login':
+            if ($method === 'POST') {
+                return $response->withBody(getUserOrCreate($request)->getBody());
+            }
+            return Response::json(["user" => "user"]);
         case '/chat':
             $html = file_get_contents("./index.html");
-            return Response::html($html);
+            return $response->html($html);
         default:
-            return Response::plaintext("Not Found", 404);
+            return $response->withStatus(404);
     }
 });
+
+
 
 $socket = new SocketServer('0.0.0.0:8000');
 $httpServer->listen($socket);
 
-echo "Server is running";
 $app->run();
