@@ -137,6 +137,22 @@ function updateMessageStatus(ServerRequestInterface $request)
     }
 }
 
+function uploadFile(ServerRequestInterface $request)
+{
+    $uploadedFiles = $request->getUploadedFiles();
+    $file = $uploadedFiles['fileToUpload'];
+    $targetDir = "uploads/";
+    $targetFile = $targetDir . basename($file->getClientFilename());
+
+    if ($file->getError() === UPLOAD_ERR_OK) {
+        $file->moveTo($targetFile);
+        return Response::plaintext("File has been uploaded.");
+    } else {
+        return Response::plaintext("Error uploading file.");
+    }
+}
+
+
 function saveMessage($message, $sent = true)
 {
     $created_at = date('Y-m-d\TH:i:s.v\Z', strtotime($message->created_at));

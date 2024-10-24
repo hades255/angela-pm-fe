@@ -187,6 +187,11 @@ $httpServer = new HttpServer(function (ServerRequestInterface $request) {
                 return $response->withBody(updateMessageStatus($request)->getBody());
             }
             return Response::json(["user" => "user"]);
+        case '/api/upload':
+            if ($method === 'POST') {
+                return $response->withBody(uploadFile($request)->getBody());
+            }
+            return $response->withStatus(405);
         case '/chat':
             $html = file_get_contents("./index.html");
             return $response->html($html);

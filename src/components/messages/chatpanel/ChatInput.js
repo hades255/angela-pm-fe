@@ -11,6 +11,7 @@ import AttachmentIcon from "../../../assets/icons/input/Attachment";
 
 import { useWebSocket } from "../../../WebSocketContext";
 import { useAuth } from "../../../contexts/AuthContext";
+import axios from "axios";
 
 const ChatInput = () => {
   const dispatch = useDispatch();
@@ -141,23 +142,32 @@ const FileUploader = ({ setFiles }) => {
   const handleFileChange = useCallback(
     async ({ target: { files } }) => {
       const selectedFiles = [...files];
-      /*
       const formData = new FormData();
+
       selectedFiles.forEach((file) => {
-        formData.append("files", file);
+        formData.append("fileToUpload", file);
       });
 
-      const response = await fetch(`your-server-endpoint`, {
-        method: "POST",
-        body: formData,
-      });
+      try {
+        const response = await axios.post(
+          "http://127.0.0.1:8000/api/upload",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
 
-      if (response.ok) {
-        setFiles(selectedFiles);
-      } else {
-        console.error("Error uploading files");
+        if (response.status === 200) {
+          console.log("Files uploaded successfully", selectedFiles);
+          setFiles(selectedFiles);
+        } else {
+          console.error("Error uploading files");
+        }
+      } catch (error) {
+        console.error("Error:", error);
       }
-      */
     },
     [setFiles]
   );
