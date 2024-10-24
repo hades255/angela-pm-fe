@@ -113,7 +113,7 @@ class Chat implements MessageComponentInterface
             sleep(1);
             if (count($this->rooms[$room]) == 1) {
                 $response = $this->callOpenAI($data->text);
-                $newMessage = createMessage($room, $response, 1, $data->to);
+                $newMessage = createMessage($room, $response, 1, $data->from);
                 saveMessage($newMessage, false);
                 $from->send(json_encode(['room' => $room, 'type' => 'message', 'data' => $newMessage]));
             }
