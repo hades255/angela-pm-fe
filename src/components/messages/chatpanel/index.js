@@ -15,7 +15,11 @@ const ChatPanel = ({ hide }) => {
   const displayingMessages = useMemo(() => {
     let result = [];
     let dt = "";
-    messages.forEach((item) => {
+    let _messages = [];
+    if (user.isAdmin)
+      _messages = messages.filter((item) => item.room === selectedUser.room);
+    else _messages = messages;
+    _messages.forEach((item) => {
       const date = new Date(item.updated_at).toLocaleDateString();
       if (dt !== date) {
         dt = date;
@@ -27,7 +31,7 @@ const ChatPanel = ({ hide }) => {
       result.push({ type: "message", item });
     });
     return result;
-  }, [messages]);
+  }, [messages, selectedUser, user]);
 
   useEffect(() => {
     if (lastShow.current)
