@@ -9,11 +9,6 @@ const StatusMonitor = () => {
 
   useEffect(() => {
     if (selectedUser) {
-      console.log({
-        room: isAdmin ? selectedUser : room,
-        type: isAdmin ? "status" : "user-status",
-        data: status,
-      });
       if (socket.readyState === 1)
         socket.send(
           JSON.stringify({
@@ -23,7 +18,7 @@ const StatusMonitor = () => {
           })
         );
     }
-  }, [isAdmin, selectedUser, status, socket]);
+  }, [isAdmin, selectedUser, status, socket, room]);
 
   return <></>;
 };

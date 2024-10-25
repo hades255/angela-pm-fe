@@ -234,8 +234,6 @@ $httpServer = new HttpServer(function (ServerRequestInterface $request) {
     }
 });
 
-
-
 $socket = new SocketServer('0.0.0.0:8000');
 $httpServer->listen($socket);
 echo ("Server started");

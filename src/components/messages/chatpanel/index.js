@@ -82,16 +82,15 @@ export default ChatPanel;
 
 const ChatItem = ({ message, mine, me }) => {
   const oppo = useSelector(getSelectedUser);
+  const dispatch = useDispatch();
   const { socket } = useWebSocket();
+  const { isAdmin } = useAuth();
+  const ref = useRef();
+  const isVisible = useOnScreen(ref);
 
   const createMarkup = () => {
     return { __html: message.text || "" };
   };
-
-  const { isAdmin } = useAuth();
-  const dispatch = useDispatch();
-  const ref = useRef();
-  const isVisible = useOnScreen(ref);
 
   useEffect(() => {
     if (isAdmin && !mine && message.status === "unread" && isVisible) {

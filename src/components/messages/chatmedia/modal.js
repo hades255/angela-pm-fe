@@ -1,11 +1,29 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import SearchIcon from "../../../assets/icons/Search";
 import DownloadIcon from "../../../assets/icons/media/Download";
 import MoreIcon from "../../../assets/icons/More";
 import classNames from "classnames";
 import LeftVectorIcon from "../../../assets/icons/vector/Left";
+import { useAuth } from "../../../contexts/AuthContext";
+import { useSelector } from "react-redux";
+import moment from "moment";
 
 const ChatMediaModal = ({ show, onClose }) => {
+  const { isAdmin } = useAuth();
+  const { attachments, selectedUser } = useSelector((state) => state.message);
+
+  const _attachments = useMemo(() => {
+    if (isAdmin) {
+      if (selectedUser) {
+        return attachments.filter(
+          (item) => item.room === selectedUser && item.type === "media"
+        );
+      }
+      return [];
+    }
+    return (attachments || []).filter((item) => item.type === "media");
+  }, [isAdmin, attachments, selectedUser]);
+
   const [close, setClose] = useState(false);
 
   const handleClickClose = useCallback(() => {
@@ -60,22 +78,16 @@ const ChatMediaModal = ({ show, onClose }) => {
           </div>
         </div>
         <div className="px-10 py-5 flex flex-wrap h-[calc(100%_-_240px)] overflow-y-scroll">
-          <MediaItem />
-          <MediaItem />
-          <MediaItem />
-          <MediaItem />
-          <MediaItem />
-          <MediaItem />
-          <MediaItem />
-          <MediaItem />
-          <MediaItem />
-          <MediaItem />
-          <MediaItem />
-          <MediaItem />
-          <MediaItem />
-          <MediaItem />
-          <MediaItem />
-          <MediaItem />
+          {_attachments &&
+            _attachments.map((item, index) => (
+              <MediaItem
+                key={item.id}
+                type={"mp4"}
+                title={"File Name.mp4"}
+                size={"480KB"}
+                createdAt={moment(item.created_at).format("D MMMM YYYY")}
+              />
+            ))}
         </div>
       </div>
     </>
@@ -84,7 +96,7 @@ const ChatMediaModal = ({ show, onClose }) => {
 
 export default ChatMediaModal;
 
-const MediaItem = () => {
+const MediaItem = ({ type, title, size, createdAt }) => {
   return (
     <div className="w-1/3 p-2 gap-[15px] relative">
       <div className="flex flex-col gap-[15px]">
@@ -98,8 +110,8 @@ const MediaItem = () => {
           />
         </div>
         <div>
-          <div className="text-[#34335B] font-bold">File Name.pdf</div>
-          <span className="text-xs text-[#34335B90]">18 Sep, 2024</span>
+          <div className="text-[#34335B] font-bold">{title}</div>
+          <span className="text-xs text-[#34335B90]">{createdAt}</span>
         </div>
       </div>
       <div className="absolute top-2 right-2 cursor-pointer">
