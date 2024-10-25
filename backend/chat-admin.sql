@@ -1,18 +1,3 @@
-/*
- Navicat Premium Data Transfer
-
- Source Server         : 127.0.0.1_3306
- Source Server Type    : MySQL
- Source Server Version : 100432 (10.4.32-MariaDB)
- Source Host           : 127.0.0.1:3306
- Source Schema         : chat-admin
-
- Target Server Type    : MySQL
- Target Server Version : 100432 (10.4.32-MariaDB)
- File Encoding         : 65001
-
- Date: 24/10/2024 06:58:24
-*/
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;

@@ -4,6 +4,7 @@ import { login } from "../redux/authSlice";
 import { useWebSocket } from "../WebSocketContext";
 import { initMessage } from "../redux/messageSlice";
 import axios from "axios";
+import { SERVER_ADDRESS } from "../constants/config";
 
 const Signin = () => {
   const dispatch = useDispatch();
@@ -18,7 +19,7 @@ const Signin = () => {
     async (e) => {
       e.preventDefault();
       try {
-        const response = await axios.post("http://45.61.141.137:5000/api/login", {
+        const response = await axios.post(SERVER_ADDRESS + "/api/login", {
           name: username,
         });
         console.log(response.data);

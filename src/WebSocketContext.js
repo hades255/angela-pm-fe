@@ -6,6 +6,7 @@ import {
   setStatus,
   setMessagePin,
 } from "./redux/messageSlice";
+import { SERVER_IP_ADDRESS, SERVER_SOCKET_PORT } from "./constants/config";
 
 export const WebSocketContext = createContext(null);
 
@@ -15,7 +16,9 @@ export const WebSocketProvider = ({ children }) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080/chat");
+    const ws = new WebSocket(
+      `ws://${SERVER_IP_ADDRESS}:${SERVER_SOCKET_PORT}/chat`
+    );
 
     ws.onopen = () => {
       console.log("WebSocket connection established.");

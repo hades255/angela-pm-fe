@@ -17,6 +17,7 @@ import { useWebSocket } from "../../../WebSocketContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import axios from "axios";
 import { setStatus as setAuthStatus } from "../../../redux/authSlice";
+import { SERVER_ADDRESS } from "../../../constants/config";
 
 const ChatInput = () => {
   const dispatch = useDispatch();
@@ -170,7 +171,7 @@ const FileUploader = ({ setFiles }) => {
 
       try {
         const response = await axios.post(
-          "http://127.0.0.1:8000/api/upload",
+          SERVER_ADDRESS + "/api/upload",
           formData,
           {
             headers: {
