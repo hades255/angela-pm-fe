@@ -18,7 +18,7 @@ const Signin = () => {
     async (e) => {
       e.preventDefault();
       try {
-        const response = await axios.post("http://127.0.0.1:8000/api/login", {
+        const response = await axios.post("http://45.61.141.137:8000/api/login", {
           name: username,
         });
         console.log(response.data);

@@ -23,7 +23,7 @@ function connectToDatabase()
     $servername = "127.0.0.1";
     $username = "root";
     $password = "";
-    $dbname = "chat-admin";
+    $dbname = "chat_admin";
 
     $conn = new mysqli($servername, $username, $password, $dbname);
 

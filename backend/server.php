@@ -33,7 +33,7 @@ class Chat implements MessageComponentInterface
         $dotenv->load();
         // constants
         $this->open_ai_key = $_ENV["OPENAI_API_KEY"];
-        print($_ENV["OPENAI_API_KEY"]);
+        print ($_ENV["OPENAI_API_KEY"]);
 
         $this->clients = new \SplObjectStorage;
         $this->admins = new \SplObjectStorage;
@@ -90,7 +90,8 @@ class Chat implements MessageComponentInterface
         $this->rooms[$room]->attach($from);
 
         if ($type === "login") {
-            if ($room === "admin-room") $this->admins->attach($from);
+            if ($room === "admin-room")
+                $this->admins->attach($from);
             $this->clients->attach($from, $room);
         }
 
@@ -154,7 +155,7 @@ class Chat implements MessageComponentInterface
     }
 }
 
-$app = new App('localhost', 8080);
+$app = new App('0.0.0.0', 8080);
 
 $app->route('/chat', new Chat, ['*']);
 
