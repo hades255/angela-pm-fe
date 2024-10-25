@@ -188,7 +188,7 @@ class Chat implements MessageComponentInterface
     }
 }
 
-$app = new App('localhost', 8080);
+$app = new App('0.0.0.0', 8080);
 
 $app->route('/chat', new Chat, ['*']);
 
