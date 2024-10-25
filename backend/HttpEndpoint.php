@@ -20,14 +20,14 @@ class HttpEndpoint
 function connectToDatabase()
 {
     //  todo
-    $servername = "mysql-3ddd3780-montgasam-5f54.a.aivencloud.com:12366";
-    $username = "avnadmin";
-    $password = "AVNS_yofuicLfmB6hTiMLlBG";
-    $dbname = "chat-admin";
-    // $servername = "127.0.0.1";
-    // $username = "root";
-    // $password = "";
+    // $servername = "mysql-3ddd3780-montgasam-5f54.a.aivencloud.com:12366";
+    // $username = "avnadmin";
+    // $password = "AVNS_yofuicLfmB6hTiMLlBG";
     // $dbname = "chat-admin";
+    $servername = "127.0.0.1";
+    $username = "root";
+    $password = "";
+    $dbname = "chat-admin";
 
     $conn = new mysqli($servername, $username, $password, $dbname);
 
