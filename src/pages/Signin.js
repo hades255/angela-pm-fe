@@ -32,25 +32,18 @@ const Signin = () => {
             data: response.data.user.id,
           })
         );
-        if (response.data.user.id === response.data.admin.id) {
-          dispatch(
-            initMessage({
-              room: response.data.user.room,
-              messages: [],
-              select: null,
-              users: response.data.users,
-            })
-          );
-        } else {
-          dispatch(
-            initMessage({
-              room: response.data.user.room,
-              messages: response.data.messages,
-              select: response.data.admin,
-              users: [],
-            })
-          );
-        }
+        const isAdmin = response.data.user.id === response.data.admin.id;
+        dispatch(
+          initMessage({
+            isAdmin,
+            room: response.data.user.room,
+            messages: response.data.messages,
+            pinned: response.data.pinned,
+            attachments: response.data.attachments,
+            select: isAdmin ? null : response.data.admin.room,
+            users: isAdmin ? response.data.users : [response.data.admin],
+          })
+        );
       } catch (error) {
         console.log(error);
       }

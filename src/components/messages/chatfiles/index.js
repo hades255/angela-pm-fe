@@ -1,9 +1,27 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import Mp4Icon from "../../../assets/icons/media/Mp4";
 import DocumentIcon from "../../../assets/icons/media/Document";
 import ChatFilesModal from "./modal";
+import { useAuth } from "../../../contexts/AuthContext";
+import { useSelector } from "react-redux";
+import moment from "moment";
 
 const ChatFilesPanel = () => {
+  const { isAdmin } = useAuth();
+  const { attachments, selectedUser } = useSelector((state) => state.message);
+
+  const _attachments = useMemo(() => {
+    if (isAdmin) {
+      if (selectedUser) {
+        return attachments.filter(
+          (item) => item.room === selectedUser && item.type === "file"
+        );
+      }
+      return [];
+    }
+    return (attachments || []).filter((item) => item.type === "file");
+  }, [isAdmin, attachments, selectedUser]);
+
   const [viewAll, setViewAll] = useState(false);
 
   const handleClickViewAll = useCallback(() => setViewAll(true), []);
@@ -21,24 +39,19 @@ const ChatFilesPanel = () => {
         </span>
       </div>
       <div>
-        <ChatFileItem
-          type={"mp4"}
-          title={"File Name.mp4"}
-          size={"480KB"}
-          createdAt={"18 Sep 2024"}
-        />
-        <ChatFileItem
-          type={"doc"}
-          title={"File Name.docx"}
-          size={"480KB"}
-          createdAt={"18 Sep 2024"}
-        />
-        <ChatFileItem
-          type={"doc"}
-          title={"File Name.pdf"}
-          size={"480KB"}
-          createdAt={"18 Sep 2024"}
-        />
+        {_attachments &&
+          _attachments.map(
+            (item, index) =>
+              index < 3 && (
+                <ChatFileItem
+                  key={item.id}
+                  type={"mp4"}
+                  title={"File Name.mp4"}
+                  size={"480KB"}
+                  createdAt={moment(item.created_at).format("D MMMM YYYY")}
+                />
+              )
+          )}
       </div>
       {viewAll && (
         <ChatFilesModal show={viewAll} onClose={handleCloseViewAll} />

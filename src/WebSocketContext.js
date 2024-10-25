@@ -1,6 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { addMessage, setStatus } from "./redux/messageSlice";
+import {
+  addMessage,
+  setUserStatus,
+  setStatus,
+  setMessagePin,
+} from "./redux/messageSlice";
 
 export const WebSocketContext = createContext(null);
 
@@ -19,8 +24,16 @@ export const WebSocketProvider = ({ children }) => {
     ws.onmessage = (event) => {
       setMessage(event.data);
       const data = JSON.parse(event.data);
-      dispatch(addMessage(data.data));
-      dispatch(setStatus(0));
+      console.log(data);
+      if (data.type === "message") {
+        dispatch(
+          addMessage({ room: data.room, data: data.data, type: "receive" })
+        );
+        dispatch(setStatus(0));
+      }
+      if (data.type === "status") dispatch(setStatus(Number(data.data || 0)));
+      if (data.type === "user-status") dispatch(setUserStatus(data));
+      if (data.type === "pin") dispatch(setMessagePin(data.data));
     };
 
     ws.onclose = () => {

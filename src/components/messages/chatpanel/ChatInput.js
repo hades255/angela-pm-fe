@@ -4,7 +4,11 @@ import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import { v4 as uuidv4 } from "uuid";
 
-import { addMessage, setStatus } from "../../../redux/messageSlice";
+import {
+  addMessage,
+  getSelectedUser,
+  setStatus,
+} from "../../../redux/messageSlice";
 import SendIcon from "../../../assets/icons/input/Send";
 import EmojiIcon from "../../../assets/icons/input/Emoji";
 import AttachmentIcon from "../../../assets/icons/input/Attachment";
@@ -12,10 +16,12 @@ import AttachmentIcon from "../../../assets/icons/input/Attachment";
 import { useWebSocket } from "../../../WebSocketContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import axios from "axios";
+import { setStatus as setAuthStatus } from "../../../redux/authSlice";
 
 const ChatInput = () => {
   const dispatch = useDispatch();
   const { room, selectedUser } = useSelector((state) => state.message);
+  const _selectedUser = useSelector(getSelectedUser);
   const user = useAuth();
   const { socket } = useWebSocket();
   const textAreaRef = useRef(null);
@@ -23,29 +29,42 @@ const ChatInput = () => {
   const [files, setFiles] = useState([]);
 
   const handleInputChange = useCallback(
-    ({ target: { value } }) => setInput(value),
-    []
+    ({ target: { value } }) => {
+      setInput(value);
+      dispatch(setAuthStatus(3));
+      const timer = setTimeout(() => {
+        dispatch(setAuthStatus(0));
+      }, 3000);
+      return () => clearTimeout(timer);
+    },
+    [dispatch]
   );
 
   const onSendMessage = useCallback(
     (message) => {
       const _msg = {
-        room: user.isAdmin ? selectedUser.room : room,
+        room: user.isAdmin ? selectedUser : room,
         id: uuidv4(),
         text: message,
         from: user.id,
-        to: user.isAdmin ? selectedUser.id : user.admin.id,
+        to: user.isAdmin ? _selectedUser.id : user.admin.id,
         attachments: [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        status: "unread",
+        status: user.isAdmin ? "read" : "unread",
       };
       if (!user.isAdmin) dispatch(setStatus(3));
-      dispatch(addMessage(_msg));
+      dispatch(
+        addMessage({
+          room: user.isAdmin ? selectedUser : room,
+          data: _msg,
+          type: "send",
+        })
+      );
       if (socket) {
         socket.send(
           JSON.stringify({
-            room: user.isAdmin ? selectedUser.room : room,
+            room: user.isAdmin ? selectedUser : room,
             type: user.isAdmin ? "reply" : "message",
             data: _msg,
           })
@@ -53,7 +72,7 @@ const ChatInput = () => {
       }
       setInput("");
     },
-    [dispatch, user, socket, room, selectedUser]
+    [dispatch, user, socket, room, selectedUser, _selectedUser]
   );
 
   const handleKeyDown = useCallback(
@@ -147,6 +166,7 @@ const FileUploader = ({ setFiles }) => {
       selectedFiles.forEach((file) => {
         formData.append("fileToUpload", file);
       });
+      console.log(selectedFiles);
 
       try {
         const response = await axios.post(
@@ -159,9 +179,11 @@ const FileUploader = ({ setFiles }) => {
           }
         );
 
+        console.log(response.data);
+
         if (response.status === 200) {
           console.log("Files uploaded successfully", selectedFiles);
-          setFiles(selectedFiles);
+          setFiles(response.data.files);
         } else {
           console.error("Error uploading files");
         }

@@ -19,7 +19,10 @@ const AdminMessages = () => {
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 1280) setShowUsersPanel(false);
+      else setShowUsersPanel(true);
     };
+    if (window.innerWidth > 1280) setShowUsersPanel(false);
+    else setShowUsersPanel(true);
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
@@ -44,7 +47,9 @@ const AdminMessages = () => {
             "h-full w-full max-w-[1024px] py-4": !isAdmin,
           })}
         >
-          {isAdmin && <UserBoard show={showUsersPanel} />}
+          {isAdmin && (
+            <UserBoard show={showUsersPanel} setShow={setShowUsersPanel} />
+          )}
           {isAdmin && (
             <div
               className={classNames(

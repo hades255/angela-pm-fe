@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import ChatInput from "./ChatInput";
 import MoreIcon from "../../../assets/icons/More";
 import classNames from "classnames";
@@ -6,7 +6,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { useAuth } from "../../../contexts/AuthContext";
 import moment from "moment";
 import useOnScreen from "../../../hooks/useOnScreen";
-import { setMessageStatus } from "../../../redux/messageSlice";
+import {
+  getSelectedUser,
+  setMessagePin,
+  setMessageStatus,
+} from "../../../redux/messageSlice";
+import StatusMonitor from "./StatusMonitor";
+import { useWebSocket } from "../../../WebSocketContext";
 
 const ChatPanel = ({ hide }) => {
   const user = useAuth();
@@ -17,12 +23,14 @@ const ChatPanel = ({ hide }) => {
   const displayingMessages = useMemo(() => {
     let result = [];
     let dt = "";
+
     let _messages = [];
     if (user.isAdmin)
-      _messages = messages.filter((item) => item.room === selectedUser.room);
+      _messages = messages.filter((item) => item.room === selectedUser);
     else _messages = messages;
+
     _messages.forEach((item) => {
-      const date = new Date(item.updated_at).toLocaleDateString();
+      const date = new Date(item.created_at).toLocaleDateString();
       if (dt !== date) {
         dt = date;
         result.push({
@@ -44,7 +52,7 @@ const ChatPanel = ({ hide }) => {
     <>
       <div
         className={classNames(
-          "w-full md:w-[calc(100%_-_284px)] h-full rounded-bl-[12px] rounded-br-[12px] md:rounded-br-none border border-[#E0E5F2] relative transition-all overflow-x-hidden",
+          "w-full xl:w-[calc(100%_-_284px)] h-full rounded-bl-[12px] rounded-br-[12px] xl:rounded-br-none border border-[#E0E5F2] relative transition-all overflow-x-hidden",
           { "w-0 max-w-0 border-0": hide }
         )}
       >
@@ -56,7 +64,6 @@ const ChatPanel = ({ hide }) => {
                 mine={user.id.toString() === item.from.toString()}
                 message={item}
                 me={user}
-                oppo={selectedUser}
               />
             ) : (
               <DayDivider date={item} key={item.id} />
@@ -66,13 +73,17 @@ const ChatPanel = ({ hide }) => {
         </div>
         <ChatInput />
       </div>
+      <StatusMonitor />
     </>
   );
 };
 
 export default ChatPanel;
 
-const ChatItem = ({ message, mine, me, oppo }) => {
+const ChatItem = ({ message, mine, me }) => {
+  const oppo = useSelector(getSelectedUser);
+  const { socket } = useWebSocket();
+
   const createMarkup = () => {
     return { __html: message.text || "" };
   };
@@ -88,19 +99,30 @@ const ChatItem = ({ message, mine, me, oppo }) => {
     }
   }, [isAdmin, isVisible, mine, message, dispatch]);
 
+  const handlePin = useCallback(() => {
+    dispatch(setMessagePin(message));
+    socket.send(
+      JSON.stringify({
+        room: message.room,
+        type: "pin",
+        data: message,
+      })
+    );
+  }, [message, dispatch, socket]);
+
   return (
     <div
-      className={classNames("flex", {
+      className={classNames("w-full flex", {
         "justify-end": mine,
         "justify-start": !mine,
       })}
       ref={ref}
     >
-      <div className="max-w-full sm:max-w-[75%]">
+      <div className="sm:max-w-[75%] flex flex-col">
         <div className="flex justify-stretch">
           {mine && (
             <div className="min-w-8 flex justify-start items-start">
-              <div className="cursor-pointer">
+              <div className="cursor-pointer" onClick={handlePin}>
                 <MoreIcon />
               </div>
             </div>
@@ -118,14 +140,15 @@ const ChatItem = ({ message, mine, me, oppo }) => {
               )}
               <div
                 className={classNames(
-                  "px-8 py-5 rounded-xl text-[#2B3674] text-sm",
+                  "px-8 py-5 rounded-xl text-[#2B3674] text-sm break-words text-wrap flex-wrap",
                   {
                     "bg-chat-send-button text-white rounded-br-none": mine,
                     "bg-[#F6F8FD] text-[#2B3674] rounded-bl-none": !mine,
                   }
                 )}
-                dangerouslySetInnerHTML={createMarkup()}
-              />
+              >
+                <span dangerouslySetInnerHTML={createMarkup()}></span>
+              </div>
               {mine && (
                 <div className="min-w-12 flex justify-end items-end">
                   <img
@@ -141,12 +164,12 @@ const ChatItem = ({ message, mine, me, oppo }) => {
                 "flex justify-end": !mine,
               })}
             >
-              {moment(message.updated_at).format("HH:mm")}
+              {moment(message.created_at).format("HH:mm")}
             </div>
           </div>
           {!mine && (
             <div className="min-w-8 flex justify-end items-start">
-              <div className="cursor-pointer">
+              <div className="cursor-pointer" onClick={handlePin}>
                 <MoreIcon />
               </div>
             </div>

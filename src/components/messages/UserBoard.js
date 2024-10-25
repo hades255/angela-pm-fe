@@ -7,7 +7,7 @@ import { setUserSelect } from "../../redux/messageSlice";
 import { UserAvatar } from "./Message";
 import { useWebSocket } from "../../WebSocketContext";
 
-const UserBoard = ({ show }) => {
+const UserBoard = ({ show, setShow }) => {
   return (
     <div
       className={classNames(
@@ -28,14 +28,14 @@ const UserBoard = ({ show }) => {
       <div className="flex flex-wrap items-center px-5 py-2 gap-4">
         <OnlineUsers />
       </div>
-      <AllUsers />
+      <AllUsers show={show} setShow={setShow} />
     </div>
   );
 };
 
 export default UserBoard;
 
-const AllUsers = () => {
+const AllUsers = ({ show, setShow }) => {
   const dispatch = useDispatch();
   const { socket } = useWebSocket();
   const { users, selectedUser } = useSelector((state) => state.message);
@@ -53,11 +53,12 @@ const AllUsers = () => {
         JSON.stringify({
           room: selected.room,
           type: "select",
-          data: selectedUser ? selectedUser.room : "",
+          data: selectedUser,
         })
       );
+      if (show) setShow(false);
     },
-    [dispatch, socket, selectedUser]
+    [dispatch, socket, selectedUser, show, setShow]
   );
 
   const filteredUsers = useMemo(() => {
@@ -115,7 +116,7 @@ const OnlineUsers = () => {
         JSON.stringify({
           room: selected.room,
           type: "select",
-          data: selectedUser ? selectedUser.room : "",
+          data: selectedUser,
         })
       );
     },

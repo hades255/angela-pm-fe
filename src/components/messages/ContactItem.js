@@ -3,6 +3,7 @@ import React, { useCallback, useMemo } from "react";
 import { UserAvatar } from "./Message";
 import moment from "moment";
 import { useSelector } from "react-redux";
+import AnimTypingIcon from "../../assets/icons/loader/AnimTyping";
 
 const ContactItem = ({ user, active, onClick }) => {
   const messages = useSelector((state) => state.message.messages);
@@ -46,7 +47,22 @@ const ContactItem = ({ user, active, onClick }) => {
           </div>
         </div>
         <div className="text-sm text-[#68769F]">
-          Recent Message of chat display here
+          {user.status === 3 ? (
+            <span className="flex items-center">
+              <AnimTypingIcon color="#24D164" width={32} /> Typing
+            </span>
+          ) : (
+            user.lastMsg && (
+              <span
+                dangerouslySetInnerHTML={{
+                  __html:
+                    user.lastMsg.length > 40
+                      ? user.lastMsg.substring(0, 40) + "..."
+                      : user.lastMsg.substring(0, 40),
+                }}
+              />
+            )
+          )}
         </div>
       </div>
       {news > 0 && (

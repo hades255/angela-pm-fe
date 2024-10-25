@@ -33,7 +33,6 @@ class Chat implements MessageComponentInterface
         $dotenv->load();
         // constants
         $this->open_ai_key = $_ENV["OPENAI_API_KEY"];
-        print($_ENV["OPENAI_API_KEY"]);
 
         $this->clients = new \SplObjectStorage;
         $this->admins = new \SplObjectStorage;
@@ -91,7 +90,12 @@ class Chat implements MessageComponentInterface
 
         if ($type === "login") {
             if ($room === "admin-room") $this->admins->attach($from);
-            $this->clients->attach($from, $room);
+            else {
+                $this->clients->attach($from, $room);
+                foreach ($this->admins as $key => $admin) {
+                    $admin->send(json_encode(['room' => $room, 'type' => 'user-status', 'data' => 0]));
+                }
+            }
         }
 
         if ($type === "select" && !empty($data)) {
@@ -102,7 +106,7 @@ class Chat implements MessageComponentInterface
         }
 
         if ($type === "message") {
-            saveMessage($data);
+            saveMessage($room, $data);
 
             if ($room !== "admin-room") {
                 foreach ($this->admins as $key => $admin) {
@@ -113,14 +117,16 @@ class Chat implements MessageComponentInterface
             sleep(1);
             if (count($this->rooms[$room]) == 1) {
                 $response = $this->callOpenAI($data->text);
-                $newMessage = createMessage($room, $response, 1, $data->from);
-                saveMessage($newMessage, false);
+                $newMessage = createMessage($room, $response, 1, $data->from, "read");
+                saveMessage($room, $newMessage, false);
                 $from->send(json_encode(['room' => $room, 'type' => 'message', 'data' => $newMessage]));
+            } else {
+                $from->send(json_encode(['room' => $room, 'type' => 'status', 'data' => 0]));
             }
         }
 
         if ($type === "reply") {
-            saveMessage($data);
+            saveMessage($room, $data);
 
             foreach ($this->rooms[$room] as $client) {
                 if ($from !== $client) {
@@ -128,12 +134,40 @@ class Chat implements MessageComponentInterface
                 }
             }
         }
+
+        if ($type === "user-status") {
+            foreach ($this->admins as $key => $admin) {
+                $admin->send($msg);
+            }
+        }
+
+        if ($type === "status") {
+            foreach ($this->rooms[$room] as $client) {
+                if ($from !== $client) {
+                    $client->send($msg);
+                }
+            }
+        }
+
+        if ($type === "pin") {
+            foreach ($this->rooms[$room] as $client) {
+                if ($from !== $client) {
+                    $client->send($msg);
+                }
+            }
+            updateMessagePin($room, $data->id);
+        }
     }
 
     public function onClose(ConnectionInterface $conn)
     {
+
         if ($this->clients->contains($conn)) {
-            updateUserStatus($this->clients[$conn], 2);
+            $room = $this->clients[$conn];
+            updateUserStatus($room, 2);
+            foreach ($this->admins as $key => $admin) {
+                $admin->send(json_encode(['room' => $room, 'type' => 'user-status', 'data' => 2]));
+            }
             $this->clients->detach($conn);
         }
         foreach ($this->rooms as $room => $clients) {

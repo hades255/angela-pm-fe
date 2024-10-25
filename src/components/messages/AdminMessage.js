@@ -16,7 +16,7 @@ const AdminMessage = ({ setShowUsersPanel, hide }) => {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth > 768) setShowPinnedPanel(false);
+      if (window.innerWidth > 1280) setShowPinnedPanel(false);
     };
     window.addEventListener("resize", handleResize);
     return () => {
@@ -48,7 +48,7 @@ const AdminMessage = ({ setShowUsersPanel, hide }) => {
           <UserHeadItem />
         </div>
         <div
-          className="cursor-pointer px-2 md:hidden"
+          className="cursor-pointer px-2 xl:hidden"
           onClick={handleClickPinnedPanelView}
         >
           {showPinnedPanel ? (

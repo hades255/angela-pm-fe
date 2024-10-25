@@ -71,14 +71,74 @@ function getUserOrCreate(ServerRequestInterface $request)
         $admin = $result->fetch_assoc();
     }
 
-    $stmt = $conn->prepare("SELECT * FROM messages WHERE room = ? ORDER BY updated_at ASC");
-    $stmt->bind_param("s", $room);
+    $messages = [];
+    if ($user_id === 1) {
+        $stmt = $conn->prepare("SELECT * FROM messages ORDER BY created_at ASC");
+    } else {
+        $stmt = $conn->prepare("SELECT * FROM messages WHERE room = ? ORDER BY created_at ASC");
+        $stmt->bind_param("s", $room);
+    }
     $stmt->execute();
     $result = $stmt->get_result();
-    $messages = [];
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $messages[] = $row;
+        }
+    }
+
+    $pinned = [];
+    if ($user_id === 1) {
+        // $stmt = $conn->prepare("SELECT * FROM pinned ORDER BY created_at DESC");
+        $stmt = $conn->prepare("
+            SELECT m.*
+            FROM pinned p
+            INNER JOIN messages m ON p.message_id = m.id
+            ORDER BY p.created_at DESC
+        ");
+    } else {
+        // $stmt = $conn->prepare("SELECT * FROM pinned WHERE room = ? ORDER BY created_at DESC");
+        $stmt = $conn->prepare("
+            SELECT m.*
+            FROM pinned p
+            INNER JOIN messages m ON p.message_id = m.id
+            WHERE p.room = ?
+            ORDER BY p.created_at DESC
+        ");
+        $stmt->bind_param("s", $room);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $pinned[] = $row;
+        }
+    }
+
+    $attachments = [];
+    if ($user_id === 1) {
+        // $stmt = $conn->prepare("SELECT * FROM attachments ORDER BY created_at DESC");
+        $stmt = $conn->prepare("
+            SELECT p.*, m.*
+            FROM attachments p
+            INNER JOIN messages m ON p.message_id = m.id
+            ORDER BY p.created_at DESC
+        ");
+    } else {
+        // $stmt = $conn->prepare("SELECT * FROM attachments WHERE room = ? ORDER BY created_at DESC");
+        $stmt = $conn->prepare("
+            SELECT p.*, m.*
+            FROM attachments p
+            INNER JOIN messages m ON p.message_id = m.id
+            WHERE p.room = ?
+            ORDER BY p.created_at DESC
+        ");
+        $stmt->bind_param("s", $room);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $attachments[] = $row;
         }
     }
 
@@ -97,7 +157,7 @@ function getUserOrCreate(ServerRequestInterface $request)
     $stmt->close();
     $conn->close();
 
-    return Response::json(["user" => $user, "admin" => $admin, "messages" => $messages, "users" => $users]);
+    return Response::json(["user" => $user, "admin" => $admin, "messages" => $messages, "users" => $users, "pinned" => $pinned, "attachments" => $attachments]);
 }
 
 function updateUserStatus($room, $status = 0)
@@ -137,9 +197,40 @@ function updateMessageStatus(ServerRequestInterface $request)
     }
 }
 
+function updateMessagePin($room, $id)
+{
+    try {
+        $conn = connectToDatabase();
+
+        $stmt = $conn->prepare("SELECT * FROM pinned WHERE message_id = ?");
+        $stmt->bind_param("s", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $pinned = $result->fetch_assoc();
+            $pinned_id = $pinned["id"];
+            $stmt = $conn->prepare("DELETE FROM pinned WHERE id = ?");
+            $stmt->bind_param("i", $pinned_id);
+            $stmt->execute();
+        } else {
+            $stmt = $conn->prepare("INSERT INTO pinned (room, message_id) VALUES (?, ?)");
+            $stmt->bind_param("ss", $room, $id);
+            $stmt->execute();
+        }
+
+        return Response::json(["message" => "OK"]);
+    } catch (\Throwable $th) {
+        print_r($th);
+        return Response::json(["error" => $th])->withStatus(400);
+    }
+}
+
 function uploadFile(ServerRequestInterface $request)
 {
+    echo "OK";
     $uploadedFiles = $request->getUploadedFiles();
+    print_r($uploadedFiles);
     $file = $uploadedFiles['fileToUpload'];
     $targetDir = "uploads/";
     $targetFile = $targetDir . basename($file->getClientFilename());
@@ -153,7 +244,7 @@ function uploadFile(ServerRequestInterface $request)
 }
 
 
-function saveMessage($message, $sent = true)
+function saveMessage($room, $message, $sent = true)
 {
     $created_at = date('Y-m-d\TH:i:s.v\Z', strtotime($message->created_at));
     $updated_at = date('Y-m-d\TH:i:s.v\Z', strtotime($message->updated_at));
@@ -175,14 +266,14 @@ function saveMessage($message, $sent = true)
 
 
     if ($message->attachments && count($message->attachments)) {
-        $sql = "INSERT INTO 'attachments' ('user_id', 'message_id', 'url', 'type', 'created_at', 'updated_at') VALUES ";
+        $sql = "INSERT INTO 'attachments' ('room', 'message_id', 'url', 'type', 'created_at', 'updated_at') VALUES ";
         $values = [];
         $types = "";
         $params = [];
         foreach ($message->attachments as $key => $value) {
             $values[] = "('?', '?', '?', '?', '?', '?')";
             $types .= "ssssss";
-            $params[] = $sent ? $message->id : $message->id;
+            $params[] = $room;
             $params[] = $message->id;
             $params[] = $value;
             $params[] = "file";
@@ -204,7 +295,7 @@ function generateUniqueId($data = "message")
     return uniqid($data . '-', true);
 }
 
-function createMessage($room, $message, $from, $to)
+function createMessage($room, $message, $from, $to, $status = "unread")
 {
     $date = new DateTime();
     $formattedDate = $date->format('Y-m-d\TH:i:s.v\Z');
@@ -217,7 +308,7 @@ function createMessage($room, $message, $from, $to)
     $msg->attachments = [];
     $msg->created_at = $formattedDate;
     $msg->updated_at = $formattedDate;
-    $msg->status = "unread";
+    $msg->status = $status;
 
     return $msg;
 }

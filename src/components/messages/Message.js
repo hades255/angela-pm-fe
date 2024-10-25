@@ -8,6 +8,7 @@ import classNames from "classnames";
 import moment from "moment";
 import AnimTypingIcon from "../../assets/icons/loader/AnimTyping";
 import { useAuth } from "../../contexts/AuthContext";
+import { getSelectedUser } from "../../redux/messageSlice";
 
 const Message = () => {
   const [showPinnedPanel, setShowPinnedPanel] = useState(false);
@@ -32,7 +33,7 @@ const Message = () => {
       <div className="w-full h-[68px] rounded-tl-[12px] rounded-tr-[12px] border border-[#E0E5F2] flex items-center justify-between px-[18px]">
         <UserHeadItem />
         <div
-          className="cursor-pointer px-2 md:hidden"
+          className="cursor-pointer px-2 xl:hidden"
           onClick={handleClickPinnedPanelView}
         >
           {showPinnedPanel ? (
@@ -54,42 +55,44 @@ export default Message;
 
 export const UserHeadItem = () => {
   const { isAdmin } = useAuth();
-  const { status, lastViewed, selectedUser } = useSelector(
-    (state) => state.message
-  );
+  const { status, lastViewed } = useSelector((state) => state.message);
+  const selectedUser = useSelector(getSelectedUser);
 
   const _status = useMemo(() => {
-    if (isAdmin) return selectedUser.status;
+    if (isAdmin) return selectedUser?.status;
     return status;
   }, [isAdmin, status, selectedUser]);
 
   return (
-    <div className="flex items-center gap-3">
-      <UserAvatar avatar={selectedUser.avatar} status={_status} />
-      <div className="flex flex-col">
-        <div className="text-[#2D396B] font-bold text-nowrap">
-          {selectedUser.name}
-        </div>
-        <div
-          className={classNames("text-sm text-nowrap", {
-            "text-[#24D164]": !isAdmin && (_status === 0 || _status === 3),
-            "text-[#34335B]": _status === 0 && _status === 3 && isAdmin,
-          })}
-        >
-          {_status === 0 && !isAdmin && "online"}
-          {(_status === 1 ||
-            _status === 2 ||
-            _status > 3 ||
-            (_status === 0 && isAdmin)) &&
-            moment(isAdmin ? selectedUser.updated_at : lastViewed).fromNow()}
-          {_status === 3 && (
-            <span className="flex items-center">
-              <AnimTypingIcon color="#24D164" width={32} /> Typing
-            </span>
-          )}
+    selectedUser && (
+      <div className="flex items-center gap-3">
+        <UserAvatar avatar={selectedUser.avatar} status={_status} />
+        <div className="flex flex-col">
+          <div className="text-[#2D396B] font-bold text-nowrap">
+            {selectedUser.name}
+          </div>
+          <div
+            className={classNames("text-sm text-nowrap", {
+              "text-[#24D164]": _status === 3 || (!isAdmin && _status === 0),
+              "text-[#34335B]":
+                _status === 1 || _status === 2 || (isAdmin && _status !== 3),
+            })}
+          >
+            {_status === 0 && !isAdmin && "online"}
+            {(_status === 1 ||
+              _status === 2 ||
+              _status > 3 ||
+              (_status === 0 && isAdmin)) &&
+              moment(isAdmin ? selectedUser.updated_at : lastViewed).fromNow()}
+            {_status === 3 && (
+              <span className="flex items-center">
+                <AnimTypingIcon color="#24D164" width={32} /> Typing
+              </span>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    )
   );
 };
 
