@@ -1,30 +1,31 @@
-import classNames from "classnames";
-import React, { useCallback, useMemo } from "react";
-import { UserAvatar } from "./Message";
-import moment from "moment";
-import { useSelector } from "react-redux";
-import AnimTypingIcon from "../../assets/icons/loader/AnimTyping";
+import React, { useCallback, useMemo } from 'react'
+import { useSelector } from 'react-redux'
+import moment from 'moment'
+// import moment from 'moment-timezone';
+import clsx from 'clsx'
+import { AnimTypingIcon } from '@icons'
+import { UserAvatar } from './Message'
 
 const ContactItem = ({ user, active, onClick }) => {
-  const messages = useSelector((state) => state.message.messages);
+  const messages = useSelector(state => state.message.messages)
 
   const news = useMemo(() => {
-    if (active) return 0;
+    if (active) return 0
     return messages.filter(
-      (item) =>
+      item =>
         item.room === user.room &&
         item.from.toString() === user.id.toString() &&
-        item.status === "unread"
-    ).length;
-  }, [messages, active, user]);
+        item.status === 'unread'
+    ).length
+  }, [messages, active, user])
 
-  const handleClick = useCallback(() => onClick(user), [onClick, user]);
+  const handleClick = useCallback(() => onClick(user), [onClick, user])
 
   return (
     <div
-      className={classNames(
-        "flex border-t border-[#CBD5E1] px-[18px] py-6 gap-[10px] relative cursor-pointer hover:bg-[#f6f6fd] transition-all",
-        { "bg-[#F6F8FD]": active }
+      className={clsx(
+        'flex border-t border-[#CBD5E1] px-[18px] py-6 gap-[10px] relative cursor-pointer hover:bg-[#f6f6fd] transition-all',
+        { 'bg-[#F6F8FD]': active }
       )}
       onClick={handleClick}
     >
@@ -43,7 +44,7 @@ const ContactItem = ({ user, active, onClick }) => {
         <div className="flex justify-between items-baseline">
           <div className="text-lg font-bold text-[#2D396B]">{user.name}</div>
           <div className="text-[#34335B]">
-            {moment(user.updated_at).fromNow()}
+            {moment.utc(user.updated_at).local().fromNow()}
           </div>
         </div>
         <div className="text-sm text-[#68769F]">
@@ -57,8 +58,8 @@ const ContactItem = ({ user, active, onClick }) => {
                 dangerouslySetInnerHTML={{
                   __html:
                     user.lastMsg.length > 40
-                      ? user.lastMsg.substring(0, 40) + "..."
-                      : user.lastMsg.substring(0, 40),
+                      ? user.lastMsg.substring(0, 40) + '...'
+                      : user.lastMsg.substring(0, 40)
                 }}
               />
             )
@@ -71,7 +72,7 @@ const ContactItem = ({ user, active, onClick }) => {
         </span>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default ContactItem;
+export default ContactItem

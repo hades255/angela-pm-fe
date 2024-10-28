@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@icons/*": ["./src/assets/icons/*"],
+      "@contexts/*": ["./src/contexts/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@constants/*": ["./src/constants/*"],
+      "@redux/*": ["./src/redux/*"],
+      "@helpers/*": ["./src/helpers/*"],
+      "@layouts/*": ["./src/layouts/*"],
+      "@pages/*": ["./src/pages/*"]
+    }
+  },
+  "include": ["src"]
+}

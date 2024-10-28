@@ -1,6 +1,5 @@
 <?php
 
-
 namespace MyApp;
 
 use Ratchet\MessageComponentInterface;
@@ -9,6 +8,11 @@ use Ratchet\App;
 use React\Http\HttpServer;
 use React\Socket\SocketServer;
 use Psr\Http\Message\ServerRequestInterface;
+
+use React\Http\Middleware\StreamingRequestMiddleware;
+use React\Http\Middleware\LimitConcurrentRequestsMiddleware;
+use React\Http\Middleware\RequestBodyBufferMiddleware;
+use React\Http\Middleware\RequestBodyParserMiddleware;
 use React\Http\Message\Response;
 use GuzzleHttp\Client;
 use Dotenv\Dotenv;
@@ -17,8 +21,6 @@ date_default_timezone_set('UTC');
 
 require __DIR__ . '/vendor/autoload.php';
 require 'HttpEndpoint.php';
-
-
 
 class Chat implements MessageComponentInterface
 {
@@ -71,7 +73,6 @@ class Chat implements MessageComponentInterface
 
     public function onOpen(ConnectionInterface $conn)
     {
-        // $this->clients->attach($conn);
         echo "New connection! ({$conn->resourceId})\n";
     }
 
@@ -90,11 +91,9 @@ class Chat implements MessageComponentInterface
 
         if ($type === "login") {
             if ($room === "admin-room") $this->admins->attach($from);
-            else {
-                $this->clients->attach($from, $room);
-                foreach ($this->admins as $key => $admin) {
-                    $admin->send(json_encode(['room' => $room, 'type' => 'user-status', 'data' => 0]));
-                }
+            $this->clients->attach($from, $room);
+            foreach ($this->admins as $key => $admin) {
+                $admin->send($msg);
             }
         }
 
@@ -120,6 +119,11 @@ class Chat implements MessageComponentInterface
                 $newMessage = createMessage($room, $response, 1, $data->from, "read");
                 saveMessage($room, $newMessage, false);
                 $from->send(json_encode(['room' => $room, 'type' => 'message', 'data' => $newMessage]));
+                if ($room !== "admin-room") {
+                    foreach ($this->admins as $key => $admin) {
+                        $admin->send(json_encode(['room' => $room, 'type' => 'message', 'data' => $newMessage]));
+                    }
+                }
             } else {
                 $from->send(json_encode(['room' => $room, 'type' => 'status', 'data' => 0]));
             }
@@ -150,12 +154,21 @@ class Chat implements MessageComponentInterface
         }
 
         if ($type === "pin") {
-            foreach ($this->rooms[$room] as $client) {
+            $flag = true;
+            foreach ($this->rooms[$data->room] as $client) {
                 if ($from !== $client) {
                     $client->send($msg);
+                    $flag = false;
                 }
             }
-            updateMessagePin($room, $data->id);
+            if ($flag) {
+                foreach ($this->admins as $key => $admin) {
+                    if ($from !== $admin) {
+                        $admin->send($msg);
+                    }
+                }
+            }
+            updateMessagePin($data->room, $data->id, $data->message->id);
         }
     }
 
@@ -194,47 +207,88 @@ $app->route('/chat', new Chat, ['*']);
 
 // HTTP server
 
-$httpServer = new HttpServer(function (ServerRequestInterface $request) {
-    $path = $request->getUri()->getPath();
-    $method = $request->getMethod();
+$middleware = new StreamingRequestMiddleware();
+$limit = new LimitConcurrentRequestsMiddleware(100);
+$buffer = new RequestBodyBufferMiddleware(10 * 1024 * 1024);
+$parser = new RequestBodyParserMiddleware();
 
-    $response = new Response();
-    $response = $response
-        ->withHeader('Access-Control-Allow-Origin', '*')
-        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+$httpServer = new HttpServer(
+    $middleware,
+    $limit,
+    $buffer,
+    $parser,
+    function (ServerRequestInterface $request) {
+        $path = $request->getUri()->getPath();
+        $method = $request->getMethod();
 
-    if ($method === 'OPTIONS') {
-        return $response->withStatus(200);
+        $response = new Response();
+        $response = $response
+            ->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+        $pattern = '/\/uploads\/([^\/]+)/';
+        if (preg_match($pattern, $path, $matches)) {
+            $filename = urldecode($matches[1]);
+            var_dump($filename);
+            $filePath = __DIR__ . '/uploads/' . $filename;
+            $mimeType = mime_content_type($filePath); // Detect MIME type
+            // Return the file content with the appropriate headers
+            return new Response(
+                200,
+                [
+                    'Content-Type' => $mimeType,
+                    'Content-Disposition' => 'attachment; filename="' . basename($filename) . '"',
+                    'Content-Length' => filesize($filePath)
+                ],
+                file_get_contents($filePath)
+            );
+        }
+        if ($method === 'OPTIONS') {
+            return $response->withStatus(200);
+        }
+
+        switch ($path) {
+            case '/api':
+                $baseDir = __DIR__ . '/uploads/1729945730(16).png';
+
+                $mimeType = mime_content_type($baseDir); // Detect MIME type
+                // Return the file content with the appropriate headers
+
+                return new Response(
+
+                    200,
+
+                    ['Content-Type' => $mimeType],
+
+                    file_get_contents($baseDir)
+
+                );
+            case '/api/login':
+                if ($method === 'POST') {
+                    return $response->withBody(getUserOrCreate($request)->getBody());
+                }
+                return Response::json(["user" => "user"]);
+            case '/api/message/status':
+                if ($method === 'POST') {
+                    return $response->withBody(updateMessageStatus($request)->getBody());
+                }
+                return Response::json(["user" => "user"]);
+            case '/api/upload':
+                if ($method === 'POST') {
+                    return $response->withBody(uploadFile($request)->getBody());
+                }
+                return $response->withStatus(405);
+            case '/chat':
+                $html = file_get_contents("./index.html");
+                return $response->html($html);
+            default:
+                return $response->withStatus(404);
+        }
     }
-
-    switch ($path) {
-        case '/api':
-            return $response->withBody((new HttpEndpoint())($request)->getBody());
-        case '/api/login':
-            if ($method === 'POST') {
-                return $response->withBody(getUserOrCreate($request)->getBody());
-            }
-            return Response::json(["user" => "user"]);
-        case '/api/message/status':
-            if ($method === 'POST') {
-                return $response->withBody(updateMessageStatus($request)->getBody());
-            }
-            return Response::json(["user" => "user"]);
-        case '/api/upload':
-            if ($method === 'POST') {
-                return $response->withBody(uploadFile($request)->getBody());
-            }
-            return $response->withStatus(405);
-        case '/chat':
-            $html = file_get_contents("./index.html");
-            return $response->html($html);
-        default:
-            return $response->withStatus(404);
-    }
-});
+);
 
 $socket = new SocketServer('0.0.0.0:8000');
 $httpServer->listen($socket);
-echo ("Server started");
+echo ("Server started on 127.0.0.1:8000\n");
 $app->run();

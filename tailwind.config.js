@@ -32,6 +32,13 @@ module.exports = {
         fadeIn: "fadeIn 0.3s ease-out forwards",
         fadeOut: "fadeOut 0.3s ease-out forwards",
       },
+      colors: {
+        primary: {
+          100: "#EEFCFF",
+          500: "#0EAAC9",
+          DEFAULT: "#0EAAC9",
+        },
+      },
     },
   },
   plugins: [],

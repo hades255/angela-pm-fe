@@ -1,6 +1,6 @@
-import React from "react";
+import React from 'react'
 
-const AttachmentIcon = ({ width = 24, height = 24, color = "#B3B3B2" }) => {
+const AttachmentIcon = ({ width = 24, height = 24, color = '#B3B3B2' }) => {
   return (
     <svg
       width={width}
@@ -18,7 +18,7 @@ const AttachmentIcon = ({ width = 24, height = 24, color = "#B3B3B2" }) => {
         fill={color}
       />
     </svg>
-  );
-};
+  )
+}
 
-export default AttachmentIcon;
+export default AttachmentIcon

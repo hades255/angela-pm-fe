@@ -1,16 +1,19 @@
-import React from "react";
-import classNames from "classnames";
-import MarkIcon from "../../../../assets/icons/Mark";
-import DashboardIcon from "../../../../assets/icons/sidebar/Dashboard";
-import PartIcon from "../../../../assets/icons/sidebar/Part";
-import MessagesIcon from "../../../../assets/icons/sidebar/Messages";
-import UsersIcon from "../../../../assets/icons/sidebar/Users";
-import SupportIcon from "../../../../assets/icons/sidebar/Support";
-import OpenSidebarIcon from "../../../../assets/icons/sidebar/OpenSidebar";
-import { useAuth } from "../../../../contexts/AuthContext";
+import React from 'react'
+import clsx from 'clsx'
+import {
+  MarkIcon,
+  DashboardIcon,
+  PartIcon,
+  MessagesIcon,
+  UsersIcon,
+  SupportIcon,
+  OpenSidebarIcon
+} from '@icons'
+
+import { useAuth } from '@contexts/AuthContext'
 
 const Sidebar = () => {
-  const user = useAuth();
+  const user = useAuth()
 
   return (
     user.isAuthenticated && (
@@ -24,57 +27,57 @@ const Sidebar = () => {
             </div>
             <div className="pt-5 flex flex-col items-center gap-4">
               <div
-                className={classNames(
-                  "cursor-pointer p-3 transition-all rounded-lg hover:bg-[#2B292940]",
+                className={clsx(
+                  'cursor-pointer p-3 transition-all rounded-lg hover:bg-[#2B292940]',
                   {
-                    "bg-[#2B2929] border-2 border-[#242222]": false,
+                    'bg-[#2B2929] border-2 border-[#242222]': false
                   }
                 )}
               >
-                <DashboardIcon color={false ? "white" : "#64748B"} />
+                <DashboardIcon color={false ? 'white' : '#64748B'} />
               </div>
               <div
-                className={classNames(
-                  "cursor-pointer p-3 transition-all rounded-lg hover:bg-[#2B292940]",
+                className={clsx(
+                  'cursor-pointer p-3 transition-all rounded-lg hover:bg-[#2B292940]',
                   {
-                    "bg-[#2B2929] border-2 border-[#242222]": false,
+                    'bg-[#2B2929] border-2 border-[#242222]': false
                   }
                 )}
               >
-                <PartIcon color={false ? "white" : "#64748B"} />
+                <PartIcon color={false ? 'white' : '#64748B'} />
               </div>
               <div
-                className={classNames(
-                  "cursor-pointer p-3 transition-all rounded-lg hover:bg-[#2B292940]",
+                className={clsx(
+                  'cursor-pointer p-3 transition-all rounded-lg hover:bg-[#2B292940]',
                   {
-                    "bg-[#2B2929] border-2 border-[#242222]": true,
+                    'bg-[#2B2929] border-2 border-[#242222]': true
                   }
                 )}
               >
-                <MessagesIcon color={true ? "white" : "#64748B"} />
+                <MessagesIcon color={true ? 'white' : '#64748B'} />
               </div>
               <div
-                className={classNames(
-                  "cursor-pointer p-3 transition-all rounded-lg hover:bg-[#2B292940]",
+                className={clsx(
+                  'cursor-pointer p-3 transition-all rounded-lg hover:bg-[#2B292940]',
                   {
-                    "bg-[#2B2929] border-2 border-[#242222]": false,
+                    'bg-[#2B2929] border-2 border-[#242222]': false
                   }
                 )}
               >
-                <UsersIcon color={false ? "white" : "#64748B"} />
+                <UsersIcon color={false ? 'white' : '#64748B'} />
               </div>
             </div>
           </div>
           <div className="flex justify-center pb-10">
             <div
-              className={classNames(
-                "cursor-pointer p-3 transition-all rounded-lg hover:bg-[#2B292940]",
+              className={clsx(
+                'cursor-pointer p-3 transition-all rounded-lg hover:bg-[#2B292940]',
                 {
-                  "bg-[#2B2929] border-2 border-[#242222]": false,
+                  'bg-[#2B2929] border-2 border-[#242222]': false
                 }
               )}
             >
-              <SupportIcon color={false ? "white" : "#64748B"} />
+              <SupportIcon color={false ? 'white' : '#64748B'} />
             </div>
           </div>
           <div className="absolute top-1/2 right-[-15px] cursor-pointer">
@@ -83,7 +86,7 @@ const Sidebar = () => {
         </div>
       </div>
     )
-  );
-};
+  )
+}
 
-export default Sidebar;
+export default Sidebar

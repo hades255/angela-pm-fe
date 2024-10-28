@@ -1,6 +1,6 @@
 import React from "react";
-import { useAuth } from "../../contexts/AuthContext";
-import Signin from "../../pages/Signin";
+import { useAuth } from "@contexts/AuthContext";
+import Signin from "@pages/Signin";
 
 const withAuth = (Component) => {
   return (props) => {

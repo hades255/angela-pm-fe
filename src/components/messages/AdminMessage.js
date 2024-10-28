@@ -1,36 +1,35 @@
-import React, { useCallback, useEffect, useState } from "react";
-import ChatPanel from "./chatpanel";
-import PinnedPanel from "./pinnedpanel";
-import LeftVectorIcon from "../../assets/icons/vector/Left";
-import RightVectorIcon from "../../assets/icons/vector/Right";
-import { UserHeadItem } from "./Message";
-import classNames from "classnames";
+import React, { useCallback, useEffect, useState } from 'react'
+import clsx from 'clsx'
+import { LeftVectorIcon, RightVectorIcon } from '@icons'
+import ChatPanel from './chatpanel'
+import PinnedPanel from './pinnedpanel'
+import { UserHeadItem } from './Message'
 
 const AdminMessage = ({ setShowUsersPanel, hide }) => {
-  const [showPinnedPanel, setShowPinnedPanel] = useState(false);
+  const [showPinnedPanel, setShowPinnedPanel] = useState(false)
 
   const handleClickPinnedPanelView = useCallback(
     () => setShowPinnedPanel(!showPinnedPanel),
     [showPinnedPanel]
-  );
+  )
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth > 1280) setShowPinnedPanel(false);
-    };
-    window.addEventListener("resize", handleResize);
+      if (window.innerWidth > 1280) setShowPinnedPanel(false)
+    }
+    window.addEventListener('resize', handleResize)
     return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
 
   return (
     <div className="w-full h-full">
       <div
-        className={classNames(
-          "w-full h-[68px] rounded-tl-none rounded-tr-[12px] border border-[#E0E5F2] flex items-center justify-between px-[18px]",
+        className={clsx(
+          'w-full h-[68px] rounded-tl-none rounded-tr-[12px] border border-[#E0E5F2] flex items-center justify-between px-[18px]',
           {
-            "rounded-tl-[12px]": hide,
+            'rounded-tl-[12px]': hide
           }
         )}
       >
@@ -63,7 +62,7 @@ const AdminMessage = ({ setShowUsersPanel, hide }) => {
         <PinnedPanel show={showPinnedPanel} />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AdminMessage;
+export default AdminMessage

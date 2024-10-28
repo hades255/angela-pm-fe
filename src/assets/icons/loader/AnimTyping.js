@@ -1,7 +1,7 @@
-import React from "react";
-import "./index.css";
+import React from 'react'
+import './index.css'
 
-const AnimTypingIcon = ({ width = 40, height = 10, color = "grey" }) => {
+const AnimTypingIcon = ({ width = 40, height = 10, color = 'grey' }) => {
   return (
     <svg
       height={height}
@@ -13,7 +13,7 @@ const AnimTypingIcon = ({ width = 40, height = 10, color = "grey" }) => {
       <circle className="anim-typing-dot" cx="20" cy="5" r="3" fill={color} />
       <circle className="anim-typing-dot" cx="30" cy="5" r="3" fill={color} />
     </svg>
-  );
-};
+  )
+}
 
-export default AnimTypingIcon;
+export default AnimTypingIcon

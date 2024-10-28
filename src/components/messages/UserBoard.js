@@ -1,19 +1,20 @@
-import React, { useCallback, useMemo, useState } from "react";
-import ContactItem from "./ContactItem";
-import SearchIcon from "../../assets/icons/Search";
-import classNames from "classnames";
-import { useDispatch, useSelector } from "react-redux";
-import { setUserSelect } from "../../redux/messageSlice";
-import { UserAvatar } from "./Message";
-import { useWebSocket } from "../../WebSocketContext";
+import React, { useCallback, useMemo, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import clsx from 'clsx'
+import { UserAvatar } from './Message'
+import ContactItem from './ContactItem'
+import { SearchIcon } from '@icons'
+import { setUserSelect } from '@redux/messageSlice'
+import { useWebSocket } from '@contexts/WebSocketContext'
+import { useAuth } from '@contexts/AuthContext'
 
 const UserBoard = ({ show, setShow }) => {
   return (
     <div
-      className={classNames(
-        "border-0 w-0 xl:w-[408px] xl:min-w-[408px] h-full rounded-s-[12px] xl:border border-[#E0E5F2] xl:flex xl:flex-col overflow-x-hidden transition-all",
+      className={clsx(
+        'border-0 w-0 xl:w-[408px] xl:min-w-[408px] h-full rounded-s-[12px] xl:border border-[#E0E5F2] xl:flex xl:flex-col overflow-x-hidden transition-all',
         {
-          "w-full min-w-[408px] !border flex flex-col rounded-[12px]": show,
+          'w-full min-w-[408px] !border flex flex-col rounded-[12px]': show
         }
       )}
     >
@@ -30,46 +31,51 @@ const UserBoard = ({ show, setShow }) => {
       </div>
       <AllUsers show={show} setShow={setShow} />
     </div>
-  );
-};
+  )
+}
 
-export default UserBoard;
+export default UserBoard
 
 const AllUsers = ({ show, setShow }) => {
-  const dispatch = useDispatch();
-  const { socket } = useWebSocket();
-  const { users, selectedUser } = useSelector((state) => state.message);
-  const [search, setSearch] = useState("");
+  const dispatch = useDispatch()
+  const user = useAuth()
+  const { socket } = useWebSocket()
+  const { users, selectedUser } = useSelector(state => state.message)
+  const [search, setSearch] = useState('')
 
   const handleSearchChange = useCallback(
     ({ target: { value } }) => setSearch(value),
     []
-  );
+  )
 
   const handleSelect = useCallback(
-    (selected) => {
-      dispatch(setUserSelect(selected));
-      socket.send(
-        JSON.stringify({
-          room: selected.room,
-          type: "select",
-          data: selectedUser,
-        })
-      );
-      if (show) setShow(false);
+    selected => {
+      dispatch(setUserSelect(selected))
+      if (selectedUser) {
+        socket.send(
+          JSON.stringify({
+            room: 'admin-room',
+            type: 'select',
+            data: selectedUser
+          })
+        )
+      }
+      if (show) setShow(false)
     },
     [dispatch, socket, selectedUser, show, setShow]
-  );
+  )
 
   const filteredUsers = useMemo(() => {
     if (users && users.length) {
       let filtered = users.filter(
-        (item) => item.name.toLowerCase().indexOf(search.toLowerCase()) !== -1
-      );
-      return filtered;
+        item =>
+          item.id !== user.id &&
+          item.name.toLowerCase().indexOf(search.toLowerCase()) !== -1
+      )
+      return filtered
     }
-    return [];
-  }, [search, users]);
+    return []
+  }, [search, users, user])
 
   return (
     <>
@@ -91,7 +97,7 @@ const AllUsers = ({ show, setShow }) => {
       </div>
       <div className="w-full h-full flex flex-col overflow-y-scroll">
         {filteredUsers.length > 0 &&
-          filteredUsers.map((item) => (
+          filteredUsers.map(item => (
             <ContactItem
               user={item}
               key={item.id}
@@ -101,42 +107,44 @@ const AllUsers = ({ show, setShow }) => {
           ))}
       </div>
     </>
-  );
-};
+  )
+}
 
 const OnlineUsers = () => {
-  const { socket } = useWebSocket();
-  const dispatch = useDispatch();
-  const { users, selectedUser } = useSelector((state) => state.message);
+  const { socket } = useWebSocket()
+  const dispatch = useDispatch()
+  const { users, selectedUser } = useSelector(state => state.message)
 
   const handleSelect = useCallback(
-    (selected) => {
-      dispatch(setUserSelect(selected));
-      socket.send(
-        JSON.stringify({
-          room: selected.room,
-          type: "select",
-          data: selectedUser,
-        })
-      );
+    selected => {
+      dispatch(setUserSelect(selected))
+      if (selectedUser) {
+        socket.send(
+          JSON.stringify({
+            room: 'admin-room',
+            type: 'select',
+            data: selectedUser
+          })
+        )
+      }
     },
     [dispatch, socket, selectedUser]
-  );
+  )
 
   return (
     <>
       {users.length > 0 &&
         users
-          .filter((item) => item.status !== 2 && item.status !== 1)
-          .map((item) => (
+          .filter(item => item.status !== 2 && item.status !== 1)
+          .map(item => (
             <OnlineUserItem user={item} key={item.id} onClick={handleSelect} />
           ))}
     </>
-  );
-};
+  )
+}
 
 const OnlineUserItem = ({ user, onClick }) => {
-  const handleClick = useCallback(() => onClick(user), [onClick, user]);
+  const handleClick = useCallback(() => onClick(user), [onClick, user])
 
   return (
     <UserAvatar
@@ -148,5 +156,5 @@ const OnlineUserItem = ({ user, onClick }) => {
       class1="w-[58px] min-w-[58px] h-[58px] min-h-[58px]"
       class2="w-[11px] h-[11px]"
     />
-  );
-};
+  )
+}

@@ -1,6 +1,6 @@
-import React from "react";
+import React from 'react'
 
-const SendIcon = ({ width = 24, height = 24, color="white" }) => {
+const SendIcon = ({ width = 24, height = 24, color = 'white' }) => {
   return (
     <svg
       width={width}
@@ -18,7 +18,7 @@ const SendIcon = ({ width = 24, height = 24, color="white" }) => {
         fill={color}
       />
     </svg>
-  );
-};
+  )
+}
 
-export default SendIcon;
+export default SendIcon

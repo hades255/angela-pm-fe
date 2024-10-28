@@ -8,6 +8,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use React\Http\Message\Response;
 use stdClass;
 
+date_default_timezone_set('UTC');
+
 class HttpEndpoint
 {
     public function __invoke(ServerRequestInterface $request)
@@ -22,7 +24,7 @@ function connectToDatabase()
     $servername = "127.0.0.1";
     $username = "root";
     $password = "";
-    $dbname = "chat-admin";
+    $dbname = "chat-test";
 
     $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -52,14 +54,20 @@ function getUserOrCreate(ServerRequestInterface $request)
         $user = $result->fetch_assoc();
         $room = $user["room"];
         $user_id = $user["id"];
-        $stmt = $conn->prepare("UPDATE users SET status = 0 WHERE id = ?");
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
+        $status = $user["status"];
+        if ($status == 0) {
+            return Response::json(["error" => true, "user" => $user, "message" => "This user is online now. Please login with another user name or try it later."]);
+        }
+        // $stmt = $conn->prepare("UPDATE users SET status = 0, updated_at=? WHERE id = ?");
+        // $stmt->bind_param("si", $current, $user_id);
+        // $stmt->execute();
+        updateUserStatus($room, 0);
     } else {
+        $current = date('Y-m-d\TH:i:s.v\Z');
         $room = generateUniqueId("room");
         $avatar = "user" . rand(2, 7) . ".png";
-        $stmt = $conn->prepare("INSERT INTO users (name, room, avatar) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $name, $room, $avatar);
+        $stmt = $conn->prepare("INSERT INTO users (name, room, avatar, created_at, updated_at) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssss", $name, $room, $avatar, $current, $current);
         $stmt->execute();
         $user_id = $stmt->insert_id;
         $user = ["id" => $user_id, "name" => $name, "room" => $room, "avatar" => $avatar];
@@ -91,7 +99,7 @@ function getUserOrCreate(ServerRequestInterface $request)
     if ($user_id === 1) {
         // $stmt = $conn->prepare("SELECT * FROM pinned ORDER BY created_at DESC");
         $stmt = $conn->prepare("
-            SELECT m.*
+            SELECT m.*, p.id, p.message_id
             FROM pinned p
             INNER JOIN messages m ON p.message_id = m.id
             ORDER BY p.created_at DESC
@@ -99,7 +107,7 @@ function getUserOrCreate(ServerRequestInterface $request)
     } else {
         // $stmt = $conn->prepare("SELECT * FROM pinned WHERE room = ? ORDER BY created_at DESC");
         $stmt = $conn->prepare("
-            SELECT m.*
+            SELECT m.*, p.id, p.message_id
             FROM pinned p
             INNER JOIN messages m ON p.message_id = m.id
             WHERE p.room = ?
@@ -119,7 +127,7 @@ function getUserOrCreate(ServerRequestInterface $request)
     if ($user_id === 1) {
         // $stmt = $conn->prepare("SELECT * FROM attachments ORDER BY created_at DESC");
         $stmt = $conn->prepare("
-            SELECT p.*, m.*
+            SELECT p.*
             FROM attachments p
             INNER JOIN messages m ON p.message_id = m.id
             ORDER BY p.created_at DESC
@@ -127,7 +135,7 @@ function getUserOrCreate(ServerRequestInterface $request)
     } else {
         // $stmt = $conn->prepare("SELECT * FROM attachments WHERE room = ? ORDER BY created_at DESC");
         $stmt = $conn->prepare("
-            SELECT p.*, m.*
+            SELECT p.*
             FROM attachments p
             INNER JOIN messages m ON p.message_id = m.id
             WHERE p.room = ?
@@ -166,9 +174,11 @@ function updateUserStatus($room, $status = 0)
     if (empty($room))
         return;
     try {
+        $current = date('Y-m-d\TH:i:s.v\Z');
+        var_dump($current);
         $conn = connectToDatabase();
-        $stmt = $conn->prepare("UPDATE users SET status = ? WHERE room = ?");
-        $stmt->bind_param("is", $status, $room);
+        $stmt = $conn->prepare("UPDATE users SET updated_at=?, status = ? WHERE room = ?");
+        $stmt->bind_param("sis", $current, $status, $room);
         $stmt->execute();
 
         $stmt->close();
@@ -187,9 +197,9 @@ function updateMessageStatus(ServerRequestInterface $request)
         $id = $parsedBody['id'] ?? null;
         $status = $parsedBody['status'] ?? null;
         $conn = connectToDatabase();
-
-        $stmt = $conn->prepare("UPDATE messages SET status = ? WHERE id = ?");
-        $stmt->bind_param("si", $status, $id);
+        $current = date('Y-m-d\TH:i:s.v\Z');
+        $stmt = $conn->prepare("UPDATE messages SET status = ?, updated_at=? WHERE id = ?");
+        $stmt->bind_param("ssi", $status, $current, $id);
         $stmt->execute();
         return Response::json(["message" => "OK"]);
     } catch (\Throwable $th) {
@@ -198,13 +208,13 @@ function updateMessageStatus(ServerRequestInterface $request)
     }
 }
 
-function updateMessagePin($room, $id)
+function updateMessagePin($room, $id, $message_id)
 {
     try {
         $conn = connectToDatabase();
 
-        $stmt = $conn->prepare("SELECT * FROM pinned WHERE message_id = ?");
-        $stmt->bind_param("s", $id);
+        $stmt = $conn->prepare("SELECT * FROM pinned WHERE message_id = ? OR id = ?");
+        $stmt->bind_param("ss", $message_id, $id);
         $stmt->execute();
         $result = $stmt->get_result();
 
@@ -215,8 +225,9 @@ function updateMessagePin($room, $id)
             $stmt->bind_param("i", $pinned_id);
             $stmt->execute();
         } else {
-            $stmt = $conn->prepare("INSERT INTO pinned (room, message_id) VALUES (?, ?)");
-            $stmt->bind_param("ss", $room, $id);
+            $current = date('Y-m-d\TH:i:s.v\Z');
+            $stmt = $conn->prepare("INSERT INTO pinned (id, room, message_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssss", $id, $room, $message_id, $current, $current);
             $stmt->execute();
         }
 
@@ -229,21 +240,40 @@ function updateMessagePin($room, $id)
 
 function uploadFile(ServerRequestInterface $request)
 {
-    echo "OK";
-    $uploadedFiles = $request->getUploadedFiles();
-    print_r($uploadedFiles);
-    $file = $uploadedFiles['fileToUpload'];
-    $targetDir = "uploads/";
-    $targetFile = $targetDir . basename($file->getClientFilename());
+    try {
+        // var_dump($request);
+        // var_dump($_FILES);
+        $uploadedFiles = $request->getUploadedFiles();
+        var_dump("File uploading...");
 
-    if ($file->getError() === UPLOAD_ERR_OK) {
-        $file->moveTo($targetFile);
-        return Response::plaintext("File has been uploaded.");
-    } else {
-        return Response::plaintext("Error uploading file.");
+        $length = count($uploadedFiles);
+
+        if ($length === 0) {
+            return Response::plaintext("File not found on body!");
+        }
+        var_dump($length . ' files are uploaded!');
+
+        for ($i = 0; $i < $length; $i++) {
+            $file = $uploadedFiles['file_' . $i];
+            $targetFile = "uploads/" . time() . "-" . $file->getClientFilename();
+            if ($file->getError() === UPLOAD_ERR_OK) {
+                var_dump("Start moving to target!");
+                $contents = (string) $file->getStream();
+                $fileSize = (string) $file->getSize();
+                file_put_contents($targetFile, $contents);
+                $paths[] = [
+                    "path" => $targetFile,
+                    "size" => $fileSize
+                ];
+            }
+        }
+
+        return Response::json(["path" => $paths]);
+    } catch (\Throwable $e) {
+        var_dump($e->getmessage());
+        return Response::json("Error uploading file");
     }
 }
-
 
 function saveMessage($room, $message, $sent = true)
 {
@@ -252,39 +282,49 @@ function saveMessage($room, $message, $sent = true)
 
     $conn = connectToDatabase();
 
-    $stmt = $conn->prepare("INSERT INTO messages (id, text, room, `from`, `to`, created_at, updated_at, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'unread')");
+    $stmt = $conn->prepare("INSERT INTO messages (id, text, room, attachments, `from`, `to`, created_at, updated_at, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $sttachments_str = json_encode($message->attachments);
     $stmt->bind_param(
-        "sssssss",
+        "sssssssss",
         $message->id,
         $message->text,
         $message->room,
+        $sttachments_str,
         $message->from,
         $message->to,
-        $created_at,
-        $updated_at
+        $message->created_at,
+        $message->updated_at,
+        $message->status,
     );
     $stmt->execute();
 
-
     if ($message->attachments && count($message->attachments)) {
-        $sql = "INSERT INTO 'attachments' ('room', 'message_id', 'url', 'type', 'created_at', 'updated_at') VALUES ";
-        $values = [];
-        $types = "";
-        $params = [];
+        $mediaTypes = ['png', 'jpg', 'jpeg', 'webp'];
         foreach ($message->attachments as $key => $value) {
-            $values[] = "('?', '?', '?', '?', '?', '?')";
-            $types .= "ssssss";
-            $params[] = $room;
-            $params[] = $message->id;
-            $params[] = $value;
-            $params[] = "file";
-            $params[] = $message->created_at;
-            $params[] = $message->updated_at;
+            try {
+                $ext = strtolower(pathinfo($value->path, PATHINFO_EXTENSION));
+                $type = in_array($ext, $mediaTypes) ? 'media' : 'file';
+                $sql = "INSERT INTO attachments (room, message_id, `url`, `type`, size, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param(
+                    "sssssss",
+                    $room,
+                    $message->id,
+                    $value->path,
+                    $type,
+                    $value->size,
+                    $created_at,
+                    $updated_at,
+                );
+                if ($stmt === false) {
+                    die('Prepare failed: ' . htmlspecialchars($conn->error));
+                }
+                $stmt->execute();
+            } catch (\Throwable $e) {
+                var_dump($e->getmessage());
+                return Response::json("error");
+            }
         }
-        $sql .= implode(", ", $values);
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param($types, ...$params);
-        $stmt->execute();
     }
 
     $stmt->close();

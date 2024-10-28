@@ -1,31 +1,32 @@
-import React, { useCallback, useMemo, useState } from "react";
-import Mp4Icon from "../../../assets/icons/media/Mp4";
-import DocumentIcon from "../../../assets/icons/media/Document";
-import ChatFilesModal from "./modal";
-import { useAuth } from "../../../contexts/AuthContext";
-import { useSelector } from "react-redux";
-import moment from "moment";
+import React, { useCallback, useMemo, useState } from 'react'
+import { useSelector } from 'react-redux'
+import moment from 'moment'
+import ChatFilesModal from './modal'
+import { Mp4Icon, DocumentIcon } from '@icons'
+import { sizeDecoration } from '@helpers'
+import { useAuth } from '@contexts/AuthContext'
+import { SERVER_ADDRESS } from '@constants/config'
 
 const ChatFilesPanel = () => {
-  const { isAdmin } = useAuth();
-  const { attachments, selectedUser } = useSelector((state) => state.message);
+  const { isAdmin } = useAuth()
+  const { attachments, selectedUser } = useSelector(state => state.message)
 
   const _attachments = useMemo(() => {
     if (isAdmin) {
       if (selectedUser) {
         return attachments.filter(
-          (item) => item.room === selectedUser && item.type === "file"
-        );
+          item => item.room === selectedUser && item.type === 'file'
+        )
       }
-      return [];
+      return []
     }
-    return (attachments || []).filter((item) => item.type === "file");
-  }, [isAdmin, attachments, selectedUser]);
+    return (attachments || []).filter(item => item.type === 'file')
+  }, [isAdmin, attachments, selectedUser])
 
-  const [viewAll, setViewAll] = useState(false);
+  const [viewAll, setViewAll] = useState(false)
 
-  const handleClickViewAll = useCallback(() => setViewAll(true), []);
-  const handleCloseViewAll = useCallback(() => setViewAll(false), []);
+  const handleClickViewAll = useCallback(() => setViewAll(true), [])
+  const handleCloseViewAll = useCallback(() => setViewAll(false), [])
 
   return (
     <>
@@ -45,10 +46,12 @@ const ChatFilesPanel = () => {
               index < 3 && (
                 <ChatFileItem
                   key={item.id}
-                  type={"mp4"}
-                  title={"File Name.mp4"}
-                  size={"480KB"}
-                  createdAt={moment(item.created_at).format("D MMMM YYYY")}
+                  size={item.size}
+                  url={item.url}
+                  createdAt={moment
+                    .utc(item.created_at)
+                    .local()
+                    .format('D MMMM YYYY')}
                 />
               )
           )}
@@ -57,25 +60,39 @@ const ChatFilesPanel = () => {
         <ChatFilesModal show={viewAll} onClose={handleCloseViewAll} />
       )}
     </>
-  );
-};
+  )
+}
 
-export default ChatFilesPanel;
+export default ChatFilesPanel
 
-const ChatFileItem = ({ type, title, size, createdAt }) => {
+const ChatFileItem = ({ size, createdAt, url }) => {
+  const title = url.substring(url.indexOf('-') + 1)
+  const type = url.substring(url.lastIndexOf('.') + 1)
+
   return (
     <div className="h-[64px] flex items-center px-3 gap-3">
-      <div className="w-12 h-12 rounded-[24px] bg-[#F1F5F9] flex justify-center items-center">
-        {type === "mp4" && <Mp4Icon />}
-        {type === "doc" && <DocumentIcon />}
+      <div className="w-12 min-w-12 h-12 rounded-[24px] bg-[#F1F5F9] flex justify-center items-center">
+        {type === 'mp4' && <Mp4Icon />}
+        {type === 'doc' && <DocumentIcon />}
+        {!(type === 'mp4' || type === 'doc') && (
+          <span className="font-bold capitalize">{type}</span>
+        )}
       </div>
       <div className="flex flex-col">
-        <div className="text-sm text-[#34335B] font-bold">{title}</div>
+        <a
+          className="text-sm text-[#34335B] font-bold cursor-pointer"
+          href={`${SERVER_ADDRESS}/${url}`}
+          download={title}
+        >
+          {title.length > 20 ? `${title.substring(0, 20)}...` : title}
+        </a>
         <div className="flex">
-          <span className="text-xs text-[#34335B] min-w-14">{size}</span>
+          <span className="text-xs text-[#34335B] min-w-14">
+            {sizeDecoration(size)}
+          </span>
           <span className="text-xs text-[#34335B] ">{createdAt}</span>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}

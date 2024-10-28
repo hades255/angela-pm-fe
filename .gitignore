@@ -28,3 +28,4 @@ yarn-error.log*
 
 /backend/vendor
 /backend/.env
+/backend/uploads

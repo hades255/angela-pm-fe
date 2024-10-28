@@ -1,5 +1,5 @@
 import axios from "axios";
-import { SERVER_ADDRESS } from "../constants/config";
+import { SERVER_ADDRESS } from "@constants/config";
 
 export const setMessageStatusAPI = async (id, status = "read") => {
   try {
