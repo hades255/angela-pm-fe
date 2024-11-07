@@ -3,6 +3,22 @@
 
 ![alt text](public/image.png)
 
+## How to run
+
+### Frontend
+
+```cmd
+npm run build
+npm run start
+```
+
+### Backend
+```cmd
+cd backend
+composer install
+php server.php
+```
+
 ## Necessary APIs
 
 ### For Customers
